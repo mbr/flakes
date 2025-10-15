@@ -14,7 +14,16 @@
 
           ## Next steps (recommended)
 
-          * Add description in `flake.nix`.
+          * Edit `Cargo.toml`
+          * Add native build dependencies to `flake.nix` (if any)
+
+          ## Development
+
+          `nix develop` to enter a dev shell
+
+          ## Building a derivation
+
+          `nix build` to build a derivation. `result/bin/..` will contain your binary
         '';
       };
 
