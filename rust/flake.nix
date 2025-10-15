@@ -1,8 +1,4 @@
-let
-  cargoToml = pkgs.lib.importTOML ./Cargo.toml;
-in {
-  description = "A Rust application with no description";
-
+{
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-25.05";
     fenix = {
@@ -36,11 +32,14 @@ in {
           cargo = toolchain;
           rustc = toolchain;
         };
+
+        cargoToml = pkgs.lib.importTOML ./Cargo.toml;
       in
       {
         packages.default = platform.buildRustPackage rec {
           pname = cargoToml.package.name;
           version = cargoToml.package.version;
+          description = cargoToml.package.description;
           nativeBuildInputs = with pkgs; [ ];
 
           src = pkgs.lib.cleanSource ./.;
