@@ -1,5 +1,7 @@
 # flake templates
 
+A repository with flake(s) to create new nix-enabled projects with minimal fuss.
+
 Usage:
 
 ```
