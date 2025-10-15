@@ -4,19 +4,13 @@
   outputs =
     { self }:
     {
-
       templates.rust = {
         path = ./rust;
-        description = "A simple Rust/Cargo project";
+        description = "A Rust project";
         welcomeText = ''
-          # Simple Rust/Cargo Template
-          ## Intended usage
-          The intended usage of this flake is...
+          # Rust project
 
-          ## More info
-          - [Rust language](https://www.rust-lang.org/)
-          - [Rust on the NixOS Wiki](https://wiki.nixos.org/wiki/Rust)
-          - ...
+          Uses Fenix to provide Rust, self-contained flake.
         '';
       };
 
