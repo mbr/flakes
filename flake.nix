@@ -24,7 +24,8 @@
 
           ## Building a derivation
 
-          `nix build` to build a derivation. `result/bin/..` will contain your binary
+	  * `nix build` to build a derivation, `result/bin/..` will contain your binary
+          * Alternative `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
 

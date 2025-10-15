@@ -48,6 +48,15 @@
             lockFile = ./Cargo.lock;
           };
         };
+
+        packages.docker = pkgs.dockerTools.buildImage {
+          name = cargoToml.package.name;
+          tag = cargoToml.package.version;
+
+          config = {
+            Cmd = [ "${self.packages.${system}.default}/bin/${cargoToml.package.name}" ];
+          };
+        };
       }
     );
 }
