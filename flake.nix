@@ -16,6 +16,7 @@
 
           * Edit `Cargo.toml`
           * Add native build dependencies to `flake.nix` (if any)
+          * (potentially) Change the pinned NixOS version.
 
           ## Development
 
