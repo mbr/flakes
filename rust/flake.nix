@@ -1,5 +1,7 @@
-{
-  description = "Run temporary PostgreSQL instances";
+let
+  cargoToml = pkgs.lib.importTOML ./Cargo.toml;
+in {
+  description = "A Rust application with no description";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-25.05";
@@ -34,14 +36,12 @@
           cargo = toolchain;
           rustc = toolchain;
         };
-
-        cargoToml = pkgs.lib.importTOML ./Cargo.toml;
       in
       {
         packages.default = platform.buildRustPackage rec {
-          pname = "pgdb";
-          version = cargoToml.workspace.package.version;
-          nativeBuildInputs = with pkgs; [ postgresql ];
+          pname = cargoToml.package.name;
+          version = cargoToml.package.version;
+          nativeBuildInputs = with pkgs; [ ];
 
           src = pkgs.lib.cleanSource ./.;
 

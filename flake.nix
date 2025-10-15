@@ -11,6 +11,10 @@
           # Rust project
 
           Uses Fenix to provide Rust, self-contained flake.
+
+          ## Next steps (recommended)
+
+          * Add description in `flake.nix`.
         '';
       };
 
