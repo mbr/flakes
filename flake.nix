@@ -1,3 +1,5 @@
+# Flake template from: https://github.com/mbr/flakes
+
 {
   description = "A collection of flake templates";
 
