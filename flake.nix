@@ -16,15 +16,15 @@
 
           * Edit `Cargo.toml`
           * Add native build dependencies to `flake.nix` (if any)
-          * (potentially) Change the pinned NixOS version.
+          * (potentially) Change the pinned NixOS version, also in `flake.nix`.
 
           ## Development
 
           `nix develop` to enter a dev shell
 
-          ## Building a derivation
+          ## Building the derivation
 
-	  * `nix build` to build a derivation, `result/bin/..` will contain your binary
+          * `nix build` to build the derivation, `result/bin/..` will contain your binary
           * Alternative `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
