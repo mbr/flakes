@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hello"
+version = "0.1.0"
+
+[project.scripts]
+myproject = "myproject:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
