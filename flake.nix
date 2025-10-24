@@ -30,6 +30,31 @@
           * Alternative `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
+      templates.rust = {
+        path = ./python;
+        description = "A Python application";
+        welcomeText = ''
+          # Python application
+
+          Uses nix-managed Python dependencies for a Python application.
+
+          ## Next steps (recommended)
+
+          * Rename `src/myproject`
+          * Edit `name` and scripts section in `pyproject.toml`
+          * Add additional dependencies to `flake.nix` (if any)
+          * (potentially) Change the pinned NixOS version, also in `flake.nix`.
+
+          ## Development
+
+          `nix develop` to enter a dev shell
+
+          ## Building the derivation
+
+          * `nix build` to build the derivation, `result/bin/..` will contain your binary
+          * Alternatively `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
+        '';
+      };
 
       templates.default = self.templates.rust;
     };
