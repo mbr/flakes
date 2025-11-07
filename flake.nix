@@ -30,7 +30,7 @@
           * Alternative `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
-      templates.rust = {
+      templates.python = {
         path = ./python;
         description = "A Python application";
         welcomeText = ''
