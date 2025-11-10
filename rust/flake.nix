@@ -49,6 +49,11 @@
           };
         };
 
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [ self.packages.${system}.default ];
+          buildInputs = [ pkgs.nixfmt-rfc-style ];
+        };
+
         packages.docker = pkgs.dockerTools.buildImage {
           name = cargoToml.package.name;
           tag = cargoToml.package.version;
