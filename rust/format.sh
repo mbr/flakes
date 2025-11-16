@@ -4,4 +4,4 @@
 #: Uses --config to override rustfmt settings without nightly toolchain
 
 cargo fmt -- --config group_imports=StdExternalCrate --config imports_granularity=Crate $@
-nixfmt flake.nix
+nixfmt $@ flake.nix
