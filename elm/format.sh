@@ -13,4 +13,4 @@ if [ "$1" = "--check" ]; then
 fi
 
 elm-format $ELM_FORMAT_FLAGS src/
-nixfmt $NIXFMT_FLAGS flake.nix
+nixfmt $NIXFMT_FLAGS flake.nix elm-srcs.nix
