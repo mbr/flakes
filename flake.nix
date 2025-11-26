@@ -55,6 +55,25 @@
           * Alternatively `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
+      templates.elm = {
+        path = ./elm;
+        description = "An Elm project";
+        welcomeText = ''
+          # Elm project
+
+          Uses stock Elm along with `tailwindcss`.
+
+          ## Next steps (recommended)
+
+          * Edit `flake.nix`, at minimum set the package name.
+          * Add native build dependencies (if any)
+          * (potentially) Change the pinned NixOS version, also in `flake.nix`.
+
+          ## Development
+
+          See `DEVELOPMENT.md` for details.
+        '';
+      };
 
       templates.default = self.templates.rust;
     };
