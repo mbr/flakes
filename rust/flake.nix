@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-25.05";
+    nixpkgs.url = "nixpkgs/nixos-25.11";
     fenix = {
       url = "fenix";
       inputs.nixpkgs.follows = "nixpkgs";
