@@ -62,7 +62,7 @@
           tag = cargoToml.package.version;
 
           config = {
-            Cmd = [ (lib.getExe self.packages.${system}.default) ];
+            Cmd = [ (pkgs.lib.getExe self.packages.${system}.default) ];
           };
         };
       }
