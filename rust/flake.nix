@@ -48,6 +48,8 @@
           cargoLock = {
             lockFile = ./Cargo.lock;
           };
+
+          meta.mainProgram = pname;
         };
 
         devShells.default = pkgs.mkShell {
@@ -60,7 +62,7 @@
           tag = cargoToml.package.version;
 
           config = {
-            Cmd = [ "${self.packages.${system}.default}/bin/${cargoToml.package.name}" ];
+            Cmd = [ (lib.getExe self.packages.${system}.default) ];
           };
         };
       }
