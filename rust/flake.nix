@@ -52,14 +52,15 @@
             description = cargoToml.package.description;
             nativeBuildInputs = with pkgs; [ llvmPackages.bintools ];
 
-          src = pkgs.lib.cleanSource ./.;
+            src = pkgs.lib.cleanSource ./.;
 
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
+            cargoLock = {
+              lockFile = ./Cargo.lock;
+            };
 
-          meta.mainProgram = pname;
-        });
+            meta.mainProgram = pname;
+          }
+        );
 
         devShells.default = pkgs.mkShell (
           rustEnv
