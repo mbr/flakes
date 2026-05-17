@@ -37,8 +37,9 @@
         cargoToml = pkgs.lib.importTOML ./Cargo.toml;
 
         # Fenix's lld doesn't set RPATH; use wrapped lld for native deps.
+        # This flag is also needed on macOS, but gated behind -Z unstable-options there.
         rustEnv = {
-          RUSTFLAGS = "-Clink-self-contained=-linker";
+          RUSTFLAGS = pkgs.lib.optionalString pkgs.stdenv.isLinux "-Clink-self-contained=-linker";
           OPENSSL_NO_VENDOR = "1";
         };
       in
