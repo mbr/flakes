@@ -67,6 +67,7 @@
           // {
             inputsFrom = [ self.packages.${system}.default ];
             buildInputs = [ pkgs.nixfmt-rfc-style ];
+            RUST_LOG = "debug";
           }
         );
 
