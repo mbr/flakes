@@ -66,7 +66,7 @@
           rustEnv
           // {
             inputsFrom = [ self.packages.${system}.default ];
-            buildInputs = [ pkgs.nixfmt-rfc-style ];
+            buildInputs = [ pkgs.nixfmt ];
             RUST_LOG = "debug";
           }
         );
