@@ -65,6 +65,7 @@
 
           ## Next steps (recommended)
 
+          * Restore script permissions with `chmod +x ./*.sh`.
           * Edit `flake.nix`, at minimum set the package name.
           * Add native build dependencies (if any)
           * (potentially) Change the pinned NixOS version, also in `flake.nix`.

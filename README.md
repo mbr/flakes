@@ -14,6 +14,7 @@ The `#rust` part is optional, as it is the default. If you are using bash, you m
 
 * `rust`: Builds a Rust project using the [fenix](https://github.com/nix-community/fenix) overlay.
 * `python`: Builds a Python application, where `nix` manages the dependencies.
+* `elm`: Builds an Elm application with Tailwind CSS.
 
 ## Alternatives
 

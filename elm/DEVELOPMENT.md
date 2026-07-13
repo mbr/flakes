@@ -1,17 +1,27 @@
 # Development
 
-This tailwind-enabled frontend application in Elm is built using stock Elm tools and `nix`. Use
+This Elm frontend uses stock Elm tooling, Tailwind CSS, and Nix.
 
-* `nix build` to build a release package, or
-* `nix develop` to enter a development shell.
+Enter the development environment with:
 
-Note that when adding any dependency via `elm install`, the `update-elm-deps.sh` script must be
-called inside a `nix develop` shell.
+```sh
+nix develop
+```
 
 ## Commands
 
-- `./format.sh` to reformat sources.
-- `./format.sh --check` to check formatting.
-- `./build.sh` to build a development version of the app.
-- `./build.sh --release` to build a release version without using `nix build`.
-- `./update-elm-deps.sh` to update the nix Elm dependencies using `elm.json`.
+- `nix fmt` formats Elm and Nix sources.
+- `./check.sh` checks formatting and builds the development application.
+- `./build.sh` builds the development application in `dist/`.
+- `./build.sh --release` builds the optimized application in `dist/`.
+- `./dev.sh` builds and serves the application on port 3000.
+- `./update-elm-deps.sh` updates the Nix dependency sources from `elm.json`.
+- `nix build` creates an optimized application package.
+
+For rebuilds while editing, run:
+
+```sh
+watchexec -r -e css,elm,html,json -d 1 ./dev.sh
+```
+
+After changing dependencies with `elm install`, run `./update-elm-deps.sh` from the development environment.

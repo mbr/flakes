@@ -1,5 +1,5 @@
-elm-stuff/
-main.js
-style.css
-result
+.direnv/
 .env
+dist/
+elm-stuff/
+result

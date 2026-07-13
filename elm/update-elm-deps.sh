@@ -1,10 +1,18 @@
 #!/bin/sh
+set -eu
 
-#: Update nix Elm depedencies from Elm lockfile.
+cd "$(dirname "$0")"
 
-set -e
+temporary_directory="$(mktemp -d)"
+trap 'rm -rf "$temporary_directory"' EXIT HUP INT TERM
 
-elm2nix convert > elm-srcs.nix.tmp
-mv elm-srcs.nix.tmp elm-srcs.nix
-elm2nix snapshot
-nixfmt elm-srcs.nix
+cp elm.json "$temporary_directory/"
+(
+  cd "$temporary_directory"
+  elm2nix convert > elm-srcs.nix
+  elm2nix snapshot
+  nixfmt elm-srcs.nix
+)
+
+mv "$temporary_directory/elm-srcs.nix" elm-srcs.nix
+mv "$temporary_directory/registry.dat" registry.dat

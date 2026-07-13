@@ -1,16 +1,27 @@
 #!/bin/sh
+set -eu
 
-#: Build the application, including CSS. Supports `--release`.
+cd "$(dirname "$0")"
 
-set -e
+rm -rf dist
+mkdir -p dist
+cp -R public/. dist/
 
-if [ "$1" = "--release" ]; then
-    ELM_OPTS="--optimize"
-    TAILWIND_OPTS="--minify"
-else
-    ELM_OPTS="--debug"
-    TAILWIND_OPTS=""
-fi
+build() {
+  elm make src/Main.elm "$1" --output=dist/app.js
+  shift
+  tailwindcss -i css/input.css -o dist/app.css "$@"
+}
 
-elm make src/Main.elm $ELM_OPTS --output=main.js
-tailwindcss -i ./src/input.css -o ./style.css $TAILWIND_OPTS
+case "${1:-}" in
+  --release)
+    build --optimize --minify
+    ;;
+  "")
+    build --debug
+    ;;
+  *)
+    echo "usage: ./build.sh [--release]" >&2
+    exit 2
+    ;;
+esac
