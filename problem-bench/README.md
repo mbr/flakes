@@ -11,7 +11,10 @@ Update the package metadata in `Cargo.toml`, then adapt:
 - `src/bin/generate-test-data.rs`: deterministic representative workload generator.
 - `expected-results.txt`: trusted output for each generated workload.
 
-Additional candidate binaries can live under `src/bin/` and use the same harness.
+Additional candidate binaries can live under `src/bin/` and use the same harness. The library includes two optional optimization utilities:
+
+- `read_input::read_input` memory-maps nonempty regular-file stdin into process-lifetime storage, while `read_input::read_input_file` provides a buffered fallback.
+- `bump_alloc::BumpAllocator` provides fixed-capacity, cache-line-aligned process-lifetime allocation suitable for use as a global allocator.
 
 Generate the sample workloads with:
 
