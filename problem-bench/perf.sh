@@ -14,7 +14,6 @@ data_dir=${BENCHMARK_DATA_DIR:-bench-data}
 results_root=${PERF_RESULTS_DIR:-perf-results}
 runs=${PERF_RUNS:-50}
 frequency=${PERF_FREQUENCY:-997}
-event=${PERF_EVENT:-cycles:u}
 allowed_cpus=${BENCHMARK_CPUS:-0}
 memory_max=${BENCHMARK_MEMORY_MAX:-200M}
 features=${BENCHMARK_CARGO_FEATURES:-}
@@ -24,7 +23,7 @@ if [ "$(uname -s)" != Linux ]; then
     exit 1
 fi
 
-for command in perf stackcollapse-perf.pl flamegraph.pl systemd-run; do
+for command in flamegraph perf systemd-run; do
     if ! command -v "$command" >/dev/null 2>&1; then
         echo "required command not found: $command" >&2
         exit 1
@@ -65,6 +64,7 @@ fi
 
 git_commit=$(git rev-parse HEAD 2>/dev/null || printf unknown)
 mkdir -p "$results_dir"
+results_dir=$(realpath "$results_dir")
 temporary_dir=$(mktemp -d)
 trap 'rm -rf "$temporary_dir"' EXIT HUP INT TERM
 
@@ -76,7 +76,6 @@ trap 'rm -rf "$temporary_dir"' EXIT HUP INT TERM
     printf 'git_dirty=%s\n' "$git_dirty"
     printf 'runs=%s\n' "$runs"
     printf 'frequency=%s\n' "$frequency"
-    printf 'event=%s\n' "$event"
     printf 'allowed_cpus=%s\n' "$allowed_cpus"
     printf 'memory_max=%s\n' "$memory_max"
     printf 'cargo_features=%s\n' "$features"
@@ -90,39 +89,36 @@ if [ -n "$features" ]; then
 else
     cargo build --profile profiling --bin "$binary_name"
 fi
-binary=target/profiling/$binary_name
+binary=$(realpath "target/profiling/$binary_name")
 
 for input in "$data_dir"/*.txt; do
     workload=${input##*/}
     workload=${workload%.txt}
-    perf_data=$temporary_dir/$workload.data
-    stacks=$temporary_dir/$workload.stacks
-    folded=$temporary_dir/$workload.folded
+    input_path=$(realpath "$input")
     flame_graph=$results_dir/$workload.svg
+    profile_dir=$temporary_dir/$workload
+    mkdir -p "$profile_dir"
 
     echo "profiling $binary_name with $input"
-    systemd-run --user --quiet --scope \
-        -p "AllowedCPUs=$allowed_cpus" \
-        -p "MemoryMax=$memory_max" \
-        -p MemorySwapMax=0 \
-        perf record \
-            --quiet \
-            --event "$event" \
-            --freq "$frequency" \
-            --call-graph dwarf,16384 \
-            --output "$perf_data" \
-            -- \
-            sh -c '
-                run=0
-                while [ "$run" -lt "$1" ]; do
-                    "$2" < "$3" >/dev/null
-                    run=$((run + 1))
-                done
-            ' profile "$runs" "$binary" "$input"
-
-    perf script --input "$perf_data" > "$stacks"
-    stackcollapse-perf.pl "$stacks" > "$folded"
-    flamegraph.pl --title "$binary_name: $workload" "$folded" > "$flame_graph"
+    (
+        cd "$profile_dir"
+        systemd-run --user --quiet --scope \
+            -p "AllowedCPUs=$allowed_cpus" \
+            -p "MemoryMax=$memory_max" \
+            -p MemorySwapMax=0 \
+            flamegraph \
+                --freq "$frequency" \
+                --output "$flame_graph" \
+                --title "$binary_name: $workload" \
+                -- \
+                sh -c '
+                    run=0
+                    while [ "$run" -lt "$1" ]; do
+                        "$2" < "$3" >/dev/null
+                        run=$((run + 1))
+                    done
+                ' profile "$runs" "$binary" "$input_path"
+    )
 done
 
 printf 'flame graphs written to %s\n' "$results_dir"

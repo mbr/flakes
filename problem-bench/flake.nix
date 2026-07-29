@@ -73,10 +73,7 @@
                 jq
                 nixfmt
               ]
-              ++ lib.optionals stdenv.isLinux [
-                flamegraph
-                perf
-              ];
+              ++ lib.optionals stdenv.isLinux [ cargo-flamegraph ];
             RUST_LOG = "debug";
           }
         );

@@ -76,6 +76,6 @@ Produce a flame graph for every generated workload on Linux:
 ./perf.sh wip
 ```
 
-The script builds the optimized `profiling` Cargo profile with debug information. It repeats short-lived binaries while recording samples and writes SVGs plus metadata beneath the ignored `perf-results/<hostname>/` directory.
+The script builds the optimized `profiling` Cargo profile with debug information. It uses `cargo-flamegraph` to aggregate samples from repeated executions of short-lived binaries and writes SVGs plus metadata beneath the ignored `perf-results/<hostname>/` directory.
 
-`PERF_RUNS`, `PERF_FREQUENCY`, `PERF_EVENT`, and `PERF_RESULTS_DIR` configure profiling. Profiling also honors `BENCHMARK_CARGO_FEATURES`, `BENCHMARK_DATA_DIR`, `BENCHMARK_CPUS`, and `BENCHMARK_MEMORY_MAX`.
+`PERF_RUNS`, `PERF_FREQUENCY`, and `PERF_RESULTS_DIR` configure profiling. Profiling also honors `BENCHMARK_CARGO_FEATURES`, `BENCHMARK_DATA_DIR`, `BENCHMARK_CPUS`, and `BENCHMARK_MEMORY_MAX`.
