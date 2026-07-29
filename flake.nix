@@ -30,6 +30,24 @@
           * Alternative `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
+      templates.problem-bench = {
+        path = ./problem-bench;
+        description = "A Rust benchmarking problem workspace";
+        welcomeText = ''
+          # Rust problem benchmarking workspace
+
+          Provides reference and candidate binaries plus correctness, benchmarking, and profiling tools.
+
+          ## Next steps
+
+          * Edit `Cargo.toml` and replace the sample binaries.
+          * Adapt `src/bin/generate-test-data.rs` and `expected-results.txt`.
+          * Run `cargo run --release --bin generate-test-data` to create workloads.
+          * Run `./test.sh target/release/wip` and `./bench.sh wip`.
+
+          See `README.md` for the complete workflow.
+        '';
+      };
       templates.python = {
         path = ./python;
         description = "A Python application";
