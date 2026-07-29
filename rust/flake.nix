@@ -70,15 +70,6 @@
             RUST_LOG = "debug";
           }
         );
-
-        packages.docker = pkgs.dockerTools.buildImage {
-          name = cargoToml.package.name;
-          tag = cargoToml.package.version;
-
-          config = {
-            Cmd = [ (pkgs.lib.getExe self.packages.${system}.default) ];
-          };
-        };
       }
     );
 }
