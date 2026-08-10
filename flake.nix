@@ -92,6 +92,23 @@
           See `DEVELOPMENT.md` for details.
         '';
       };
+      templates.rust-elm = {
+        path = ./rust-elm;
+        description = "A Rust and Elm full-stack web application";
+        welcomeText = ''
+          # Rust and Elm web application
+
+          Uses Axum, Elm, Tailwind CSS, and a single self-contained flake.
+
+          ## Next steps
+
+          * Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
+          * Replace `myapp` in the Rust package, flake, and NixOS module.
+          * Run `direnv allow` or enter the environment with `nix develop`.
+
+          See `README.md` for the development and deployment workflow.
+        '';
+      };
 
       templates.default = self.templates.rust;
     };

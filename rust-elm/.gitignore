@@ -1,0 +1,8 @@
+.direnv/
+.env
+.process-compose.log
+.process-compose.sock
+backend/target/
+frontend/dist/
+frontend/elm-stuff/
+result

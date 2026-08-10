@@ -16,6 +16,7 @@ The `#rust` part is optional, as it is the default. If you are using bash, you m
 * `problem-bench`: Builds a Rust workspace for correctness testing, benchmarking, and profiling coding problems.
 * `python`: Builds a Python application, where `nix` manages the dependencies.
 * `elm`: Builds an Elm application with Tailwind CSS.
+* `rust-elm`: Builds a full-stack Axum and Elm application with Tailwind CSS.
 
 ## Alternatives
 
