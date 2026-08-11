@@ -2,6 +2,7 @@
   description = "Rust and Elm full-stack web application";
 
   inputs = {
+    self.submodules = true;
     nixpkgs.url = "nixpkgs/nixos-26.05";
     fenix = {
       url = "fenix";

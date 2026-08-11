@@ -4,10 +4,12 @@ A full-stack application with an Axum backend, Elm frontend, Tailwind CSS, and r
 
 ## Initial setup
 
-1. Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
-2. Replace `myapp` in `backend/Cargo.toml`, `flake.nix`, and `nixos-module.nix`.
-3. Update the package descriptions and the frontend document title.
-4. Run `direnv allow` or enter the environment with `nix develop`.
+1. Initialize Git with `git init`.
+2. Add the component library with `git submodule add git@github.com:mbr/elm-chadcn.git frontend/src/ChadCn`.
+3. Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
+4. Replace `myapp` in `backend/Cargo.toml`, `flake.nix`, and `nixos-module.nix`.
+5. Update the package descriptions and the frontend document title.
+6. Run `direnv allow` or enter the environment with `nix develop`.
 
 The generated project intentionally has no database, authentication, or domain architecture. Add those when the application requires them.
 
@@ -45,7 +47,7 @@ Add resource-specific submodules only when the initial files become unwieldy. Th
 
 ## Frontend components
 
-`ChadCn.Alert` and `ChadCn.Button` establish the reusable component conventions without importing a complete component catalogue. Their semantic colors and component rules live in `frontend/css/input.css`.
+The `frontend/src/ChadCn` submodule provides the reusable component catalogue. The application stylesheet defines its semantic theme and Tailwind scans the submodule for component utilities.
 
 ## Deployment
 

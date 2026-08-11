@@ -102,6 +102,8 @@
 
           ## Next steps
 
+          * Initialize Git with `git init`.
+          * Add ChadCn with `git submodule add git@github.com:mbr/elm-chadcn.git frontend/src/ChadCn`.
           * Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
           * Replace `myapp` in the Rust package, flake, and NixOS module.
           * Run `direnv allow` or enter the environment with `nix develop`.
