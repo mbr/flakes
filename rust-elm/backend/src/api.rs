@@ -1,4 +1,6 @@
-//! Defines the HTTP transport contract and its error representation.
+//! Defines the server side of the HTTP transport contract.
+//!
+//! Keep response schemas and error codes synchronized with `frontend/src/Api.elm`.
 
 use axum::{
     Json,

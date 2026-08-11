@@ -1,6 +1,9 @@
 module Api exposing (Error(..), Problem, Status, errorMessage, getStatus)
 
 {-| Defines the browser side of the HTTP transport contract.
+
+Keep response decoders and errors synchronized with `backend/src/api.rs`.
+
 -}
 
 import Http

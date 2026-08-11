@@ -100,15 +100,29 @@
 
           Uses Axum, Elm, Tailwind CSS, and a single self-contained flake.
 
-          ## Next steps
+          ## Setup
 
           * Initialize Git with `git init`.
           * Add ChadCn with `git submodule add git@github.com:mbr/elm-chadcn.git frontend/src/ChadCn`.
           * Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
           * Replace `myapp` in the Rust package, flake, and NixOS module.
+          * Update the package descriptions and frontend document title.
           * Run `direnv allow` or enter the environment with `nix develop`.
 
-          See `README.md` for the development and deployment workflow.
+          ## Development
+
+          * `process-compose up` starts the backend and frontend watchers.
+          * The backend serves the application at <http://127.0.0.1:3000>.
+          * `./check.sh` validates formatting, tests, lints, and the frontend build.
+          * `./format.sh` formats Rust, Elm, and Nix sources.
+          * `./frontend/update-elm-deps.sh` updates the Nix snapshot after changing `elm.json`.
+
+          ## Build and deployment
+
+          * `nix flake check` builds all packages and evaluates the NixOS module.
+          * `nix build` creates the combined production package.
+          * `nix run` runs the combined package.
+          * The flake exports the service module as `nixosModules.default`.
         '';
       };
 
