@@ -5,29 +5,14 @@ cd "$(dirname "$0")"
 
 case "${1:-}" in
   --check)
-    cargo fmt --manifest-path backend/Cargo.toml -- \
-      --config group_imports=StdExternalCrate \
-      --config imports_granularity=Crate \
-      --check
-    elm-format --validate frontend/src
-    nixfmt --check \
-      flake.nix \
-      nixos-module.nix \
-      backend/package.nix \
-      frontend/elm-srcs.nix \
-      frontend/package.nix
+    nixfmt --check flake.nix nixos-module.nix
+    ./backend/format.sh --check
+    ./frontend/format.sh --check
     ;;
   "")
-    cargo fmt --manifest-path backend/Cargo.toml -- \
-      --config group_imports=StdExternalCrate \
-      --config imports_granularity=Crate
-    elm-format --yes frontend/src
-    nixfmt \
-      flake.nix \
-      nixos-module.nix \
-      backend/package.nix \
-      frontend/elm-srcs.nix \
-      frontend/package.nix
+    nixfmt flake.nix nixos-module.nix
+    ./backend/format.sh
+    ./frontend/format.sh
     ;;
   *)
     echo "usage: ./format.sh [--check]" >&2

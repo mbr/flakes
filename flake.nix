@@ -102,7 +102,7 @@
 
           ## Setup
 
-          * Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
+          * Restore script permissions with `chmod +x ./*.sh backend/*.sh frontend/*.sh`.
           * Replace `myapp` in the Rust package, flake, and NixOS module.
           * Update the package descriptions and frontend document title.
           * Run `direnv allow` before starting Process Compose.

@@ -3,4 +3,5 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./backend/tests.sh
+./format.sh --check
+./build.sh
