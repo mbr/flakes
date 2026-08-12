@@ -1,15 +1,12 @@
 //! Serves the JSON API and compiled frontend.
 
-use std::{fs, future::Future, io, os::unix::fs::PermissionsExt, path::PathBuf};
+use std::{future::Future, io, path::PathBuf};
 
 use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
-use tokio::{
-    net::{TcpListener, UnixListener},
-    signal::{
-        ctrl_c,
-        unix::{SignalKind, signal},
-    },
+use tokio::signal::{
+    ctrl_c,
+    unix::{SignalKind, signal},
 };
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
@@ -19,6 +16,7 @@ use crate::{
     config::ListenAddress,
     db,
     error::{AppError, AppResult},
+    listener::{self, Listener},
 };
 
 /// Holds resources shared by HTTP handlers.
@@ -37,9 +35,8 @@ pub async fn run(
     let application = router(frontend.clone(), database);
     let shutdown = shutdown_signal()?;
 
-    match listen_address {
-        ListenAddress::Tcp(address) => {
-            let listener = TcpListener::bind(address).await?;
+    match listener::open(&listen_address).await? {
+        Listener::Tcp(listener) => {
             let address = listener.local_addr()?;
 
             info!(%address, frontend = %frontend.display(), "web server listening");
@@ -47,11 +44,10 @@ pub async fn run(
                 .with_graceful_shutdown(shutdown)
                 .await?;
         }
-        ListenAddress::Unix(path) => {
-            let listener = UnixListener::bind(&path)?;
-            fs::set_permissions(&path, fs::Permissions::from_mode(0o660))?;
+        Listener::Unix(listener) => {
+            let path = listener.local_addr()?;
 
-            info!(path = %path.display(), frontend = %frontend.display(), "web server listening");
+            info!(path = ?path.as_pathname(), frontend = %frontend.display(), "web server listening");
             axum::serve(listener, application)
                 .with_graceful_shutdown(shutdown)
                 .await?;
