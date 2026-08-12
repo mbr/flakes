@@ -1,5 +1,6 @@
 {
   elmPackages,
+  esbuild,
   lib,
   stdenvNoCC,
   tailwindcss_4,
@@ -22,6 +23,7 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [
     elmPackages.elm
+    esbuild
     tailwindcss_4
   ];
 

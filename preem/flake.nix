@@ -132,6 +132,7 @@
               elm2nix
               elmPackages.elm
               elmPackages.elm-format
+              esbuild
               nixfmt
               pgdb.packages.${system}.default
               postgresql
