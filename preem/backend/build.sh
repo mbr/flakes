@@ -3,4 +3,4 @@ set -eu
 
 cd "$(dirname "$0")"
 
-exec cargo build
+exec cargo build "$@"
