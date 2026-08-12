@@ -6,6 +6,7 @@ use clap::Parser;
 use tracing_subscriber::EnvFilter;
 
 mod api;
+mod error;
 mod web;
 
 /// Configures the web application.

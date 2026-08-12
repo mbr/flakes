@@ -1,14 +1,12 @@
-//! Defines the server side of the HTTP transport contract.
+//! Defines public values sent across the HTTP boundary.
 //!
-//! Keep response schemas and error codes synchronized with `frontend/src/Api.elm`.
+//! Successful handlers serialize their endpoint-specific response types.
+//! Non-success responses serialize [`ApiProblem`], whose variants and payloads
+//! must remain synchronized with `frontend/src/Api.elm`. Internal failures and
+//! private context belong in `error.rs`, not in these serializable types.
 
-use axum::{
-    Json,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
+use axum::http::StatusCode;
 use serde::Serialize;
-use thiserror::Error;
 
 /// Describes a successful status response.
 #[derive(Debug, Serialize)]
@@ -17,63 +15,24 @@ pub struct StatusResponse {
     pub status: &'static str,
 }
 
-/// Describes an error returned by the JSON API.
+/// Describes failures safe to expose through the JSON API.
 #[derive(Debug, Serialize)]
-struct Problem {
-    /// Stable machine-readable error identity.
-    code: &'static str,
-    /// Human-readable error description.
-    message: &'static str,
-}
-
-/// Describes failures exposed by the JSON API.
-#[derive(Debug, Error)]
-pub enum ApiError {
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ApiProblem {
     /// The requested API route does not exist.
-    #[error("API route not found")]
     RouteNotFound,
 
     /// The API route does not accept the request method.
-    #[error("API method not allowed")]
     MethodNotAllowed,
 }
 
-impl ApiError {
-    /// Returns the HTTP status associated with the error.
-    const fn status(&self) -> StatusCode {
+impl ApiProblem {
+    /// Returns the HTTP status associated with the public problem.
+    pub const fn status_code(&self) -> StatusCode {
         match self {
             Self::RouteNotFound => StatusCode::NOT_FOUND,
             Self::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
         }
-    }
-
-    /// Returns the stable machine-readable error identity.
-    const fn code(&self) -> &'static str {
-        match self {
-            Self::RouteNotFound => "route_not_found",
-            Self::MethodNotAllowed => "method_not_allowed",
-        }
-    }
-
-    /// Returns the message safe to expose to clients.
-    const fn public_message(&self) -> &'static str {
-        match self {
-            Self::RouteNotFound => "API route not found",
-            Self::MethodNotAllowed => "API method not allowed",
-        }
-    }
-}
-
-impl IntoResponse for ApiError {
-    /// Converts an API failure into a structured JSON response.
-    fn into_response(self) -> Response {
-        let status = self.status();
-        let problem = Problem {
-            code: self.code(),
-            message: self.public_message(),
-        };
-
-        (status, Json(problem)).into_response()
     }
 }
 
@@ -81,14 +40,20 @@ impl IntoResponse for ApiError {
 mod tests {
     use serde_json::json;
 
-    use super::StatusResponse;
+    use super::{ApiProblem, StatusResponse};
 
-    /// Verifies the initial cross-language status contract.
+    /// Verifies the initial cross-language transport contract.
     #[test]
-    fn serializes_status_response() {
+    fn serializes_api_values() {
         let response = StatusResponse { status: "ok" };
-        let value = serde_json::to_value(response).expect("status response should serialize");
 
-        assert_eq!(value, json!({ "status": "ok" }));
+        assert_eq!(
+            serde_json::to_value(response).expect("status response should serialize"),
+            json!({ "status": "ok" }),
+        );
+        assert_eq!(
+            serde_json::to_value(ApiProblem::RouteNotFound).expect("API problem should serialize"),
+            json!({ "type": "route_not_found" }),
+        );
     }
 }

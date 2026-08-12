@@ -1,8 +1,11 @@
-module Api exposing (Error(..), Problem, Status, errorMessage, getStatus)
+module Api exposing (ApiProblem(..), Error(..), Status, errorMessage, getStatus)
 
 {-| Defines the browser side of the HTTP transport contract.
 
-Keep response decoders and errors synchronized with `backend/src/api.rs`.
+Successful `2xx` responses are decoded with an endpoint-specific decoder. A
+non-`2xx` response is decoded as the shared `ApiProblem` sum type; transport and
+protocol failures remain separate `Error` variants. Keep public problem variants
+and payloads synchronized with `backend/src/api.rs`.
 
 -}
 
@@ -17,12 +20,11 @@ type alias Status =
     }
 
 
-{-| Describes an error returned by the JSON API.
+{-| Describes failures returned by the JSON API.
 -}
-type alias Problem =
-    { code : String
-    , message : String
-    }
+type ApiProblem
+    = RouteNotFound
+    | MethodNotAllowed
 
 
 {-| Describes failures produced while making an API request.
@@ -33,8 +35,7 @@ type Error
     | Timeout
     | Rejected
         { status : Int
-        , problem : Maybe Problem
-        , body : String
+        , problem : ApiProblem
         }
     | InvalidResponse String
 
@@ -64,19 +65,25 @@ errorMessage error =
             "The API request timed out."
 
         Rejected rejection ->
-            rejection.problem
-                |> Maybe.map .message
-                |> Maybe.withDefault
-                    ("The API rejected the request with status "
-                        ++ String.fromInt rejection.status
-                        ++ "."
-                    )
+            problemMessage rejection.problem
 
         InvalidResponse _ ->
             "The API returned an unexpected response."
 
 
-{-| Decodes successful JSON while preserving structured error responses.
+{-| Returns a human-readable description of an API problem.
+-}
+problemMessage : ApiProblem -> String
+problemMessage problem =
+    case problem of
+        RouteNotFound ->
+            "The requested API route does not exist."
+
+        MethodNotAllowed ->
+            "The API route does not accept this request method."
+
+
+{-| Decodes successful JSON and typed API problems according to HTTP status.
 -}
 expectJson : Decoder value -> (Result Error value -> msg) -> Http.Expect msg
 expectJson decoder toMessage =
@@ -99,15 +106,17 @@ decodeResponse decoder response =
             Err NetworkError
 
         Http.BadStatus_ metadata body ->
-            Err
-                (Rejected
-                    { body = body
-                    , problem =
-                        Decode.decodeString problemDecoder body
-                            |> Result.toMaybe
-                    , status = metadata.statusCode
-                    }
-                )
+            case Decode.decodeString apiProblemDecoder body of
+                Ok problem ->
+                    Err
+                        (Rejected
+                            { problem = problem
+                            , status = metadata.statusCode
+                            }
+                        )
+
+                Err decodeError ->
+                    Err (InvalidResponse (Decode.errorToString decodeError))
 
         Http.GoodStatus_ _ body ->
             Decode.decodeString decoder body
@@ -122,10 +131,20 @@ statusDecoder =
         (Decode.field "status" Decode.string)
 
 
-{-| Decodes the structured API error contract.
+{-| Decodes the public API problem sum type.
 -}
-problemDecoder : Decoder Problem
-problemDecoder =
-    Decode.map2 Problem
-        (Decode.field "code" Decode.string)
-        (Decode.field "message" Decode.string)
+apiProblemDecoder : Decoder ApiProblem
+apiProblemDecoder =
+    Decode.field "type" Decode.string
+        |> Decode.andThen
+            (\problemType ->
+                case problemType of
+                    "route_not_found" ->
+                        Decode.succeed RouteNotFound
+
+                    "method_not_allowed" ->
+                        Decode.succeed MethodNotAllowed
+
+                    _ ->
+                        Decode.fail ("unknown API problem type: " ++ problemType)
+            )

@@ -7,7 +7,10 @@ use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
 
-use crate::api::{ApiError, StatusResponse};
+use crate::{
+    api::StatusResponse,
+    error::{AppError, AppResult},
+};
 
 /// Runs the HTTP server.
 pub async fn run(bind_address: SocketAddr, frontend: PathBuf) -> anyhow::Result<()> {
@@ -34,16 +37,16 @@ fn router(frontend: PathBuf) -> Router {
 }
 
 /// Returns the current service status.
-async fn status() -> Json<StatusResponse> {
-    Json(StatusResponse { status: "ok" })
+async fn status() -> AppResult<Json<StatusResponse>> {
+    Ok(Json(StatusResponse { status: "ok" }))
 }
 
 /// Returns the structured API route error.
-async fn api_not_found() -> ApiError {
-    ApiError::RouteNotFound
+async fn api_not_found() -> AppResult<()> {
+    Err(AppError::RouteNotFound)
 }
 
 /// Returns the structured API method error.
-async fn method_not_allowed() -> ApiError {
-    ApiError::MethodNotAllowed
+async fn method_not_allowed() -> AppResult<()> {
+    Err(AppError::MethodNotAllowed)
 }
