@@ -83,10 +83,9 @@
         pkgs.symlinkJoin {
           name = "${name}-full";
           paths = [ backend ];
-          nativeBuildInputs = [ pkgs.makeWrapper ];
           postBuild = ''
-            wrapProgram $out/bin/${name} \
-              --set APP_FRONTEND ${frontend}
+            mkdir -p $out/share/${name}
+            ln -s ${frontend} $out/share/${name}/frontend
           '';
           meta = backend.meta // {
             mainProgram = name;
@@ -146,8 +145,6 @@
               toolchainFor.${system}
               watchexec
             ];
-            APP_FRONTEND = "../frontend/dist";
-            RUST_LOG = "myapp=debug,tower_http=debug";
           }
         );
       });

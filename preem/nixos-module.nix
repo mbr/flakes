@@ -13,6 +13,15 @@ let
       "postgresql:///${cfg.database.name}?host=/run/postgresql"
     else
       cfg.database.url;
+  logFilter =
+    "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
+    + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
+  configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
+    bind_address = cfg.bindAddress;
+    database_url = databaseUrl;
+    frontend = "${cfg.package}/share/myapp/frontend";
+    log_filter = logFilter;
+  };
 in
 {
   options.services.myapp = {
@@ -120,16 +129,8 @@ in
       after = [ "network-online.target" ] ++ lib.optional cfg.database.createLocally "postgresql.service";
       requires = lib.optional cfg.database.createLocally "postgresql.service";
 
-      environment = {
-        APP_BIND_ADDRESS = cfg.bindAddress;
-        DATABASE_URL = databaseUrl;
-        RUST_LOG =
-          "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
-          + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
-      };
-
       serviceConfig = {
-        ExecStart = lib.getExe cfg.package;
+        ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
         User = cfg.user;
         Group = cfg.group;
         DynamicUser = true;

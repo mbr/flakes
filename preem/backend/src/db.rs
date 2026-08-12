@@ -3,6 +3,7 @@
 use std::str::FromStr;
 
 use sec::Secret;
+use serde::{Deserialize, Deserializer, de::Error as _};
 use sqlx::{
     PgConnection, PgPool,
     migrate::{MigrateError, Migrator},
@@ -23,6 +24,18 @@ impl FromStr for DatabaseUrl {
     /// Parses PostgreSQL connection options from a URL.
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         value.parse().map(Box::new).map(Secret::new).map(Self)
+    }
+}
+
+impl<'de> Deserialize<'de> for DatabaseUrl {
+    /// Deserializes PostgreSQL connection options from a URL.
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        String::deserialize(deserializer)?
+            .parse()
+            .map_err(D::Error::custom)
     }
 }
 
