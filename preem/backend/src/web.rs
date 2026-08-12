@@ -1,10 +1,16 @@
 //! Serves the JSON API and compiled frontend.
 
-use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf};
+use std::{fs, future::Future, io, os::unix::fs::PermissionsExt, path::PathBuf};
 
 use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
-use tokio::net::{TcpListener, UnixListener};
+use tokio::{
+    net::{TcpListener, UnixListener},
+    signal::{
+        ctrl_c,
+        unix::{SignalKind, signal},
+    },
+};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
 
@@ -29,6 +35,7 @@ pub async fn run(
     database: PgPool,
 ) -> anyhow::Result<()> {
     let application = router(frontend.clone(), database);
+    let shutdown = shutdown_signal()?;
 
     match listen_address {
         ListenAddress::Tcp(address) => {
@@ -36,18 +43,41 @@ pub async fn run(
             let address = listener.local_addr()?;
 
             info!(%address, frontend = %frontend.display(), "web server listening");
-            axum::serve(listener, application).await?;
+            axum::serve(listener, application)
+                .with_graceful_shutdown(shutdown)
+                .await?;
         }
         ListenAddress::Unix(path) => {
             let listener = UnixListener::bind(&path)?;
             fs::set_permissions(&path, fs::Permissions::from_mode(0o660))?;
 
             info!(path = %path.display(), frontend = %frontend.display(), "web server listening");
-            axum::serve(listener, application).await?;
+            axum::serve(listener, application)
+                .with_graceful_shutdown(shutdown)
+                .await?;
         }
     }
 
+    info!("web server stopped");
     Ok(())
+}
+
+/// Waits for an operating-system shutdown signal.
+fn shutdown_signal() -> io::Result<impl Future<Output = ()>> {
+    let mut terminate = signal(SignalKind::terminate())?;
+
+    Ok(async move {
+        tokio::select! {
+            result = ctrl_c() => {
+                if let Err(error) = result {
+                    tracing::warn!(%error, "failed to receive interrupt signal");
+                }
+            }
+            _ = terminate.recv() => {}
+        }
+
+        info!("shutdown signal received");
+    })
 }
 
 /// Builds the application router.
