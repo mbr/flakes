@@ -17,18 +17,12 @@ processes:
   backend:
     working_dir: backend
     command: |
-      runtime_dir="$$(mktemp -d)"
-      config="$${runtime_dir}/config.toml"
-      trap 'rm -rf "$${runtime_dir}"' EXIT
-
-      cat > "$${config}" <<EOF
+      exec ./target/debug/myapp - <<EOF
       listen_address = "127.0.0.1:$${APP_DEV_PORT}"
       database_url = "postgres://dev:dev@127.0.0.1:$${APP_DB_PORT}/dev"
       frontend = "../frontend/dist"
       log_filter = "myapp=debug,tower_http=debug"
       EOF
-
-      exec ./target/debug/myapp "$${config}"
     depends_on:
       postgres:
         condition: process_healthy

@@ -2,6 +2,7 @@
 
 use std::{
     fs,
+    io::{self, Read},
     net::{AddrParseError, SocketAddr},
     path::{Path, PathBuf},
     str::FromStr,
@@ -75,22 +76,22 @@ pub struct Config {
 /// Describes failures while loading application configuration.
 #[derive(Debug, Error)]
 pub enum LoadError {
-    /// The configuration file could not be read.
-    #[error("failed to read configuration from {path}")]
+    /// The configuration source could not be read.
+    #[error("failed to read configuration from {location}")]
     Read {
-        /// Path to the configuration file.
-        path: PathBuf,
+        /// Description of the configuration source.
+        location: String,
 
-        /// Underlying filesystem error.
+        /// Underlying input error.
         #[source]
-        source: std::io::Error,
+        source: io::Error,
     },
 
-    /// The configuration file contains invalid TOML or values.
-    #[error("failed to parse configuration from {path}")]
+    /// The configuration contains invalid TOML or values.
+    #[error("failed to parse configuration from {location}")]
     Parse {
-        /// Path to the configuration file.
-        path: PathBuf,
+        /// Description of the configuration source.
+        location: String,
 
         /// Underlying TOML error.
         #[source]
@@ -98,17 +99,31 @@ pub enum LoadError {
     },
 }
 
-/// Loads application configuration from a TOML file.
+/// Loads application configuration from a TOML file or standard input.
 pub fn load(path: &Path) -> Result<Config, LoadError> {
-    let serialized = fs::read_to_string(path).map_err(|source| LoadError::Read {
-        path: path.to_owned(),
-        source,
-    })?;
+    let location = if path == Path::new("-") {
+        "standard input".to_owned()
+    } else {
+        path.display().to_string()
+    };
+    let serialized = if path == Path::new("-") {
+        let mut serialized = String::new();
+        io::stdin()
+            .lock()
+            .read_to_string(&mut serialized)
+            .map_err(|source| LoadError::Read {
+                location: location.clone(),
+                source,
+            })?;
+        serialized
+    } else {
+        fs::read_to_string(path).map_err(|source| LoadError::Read {
+            location: location.clone(),
+            source,
+        })?
+    };
 
-    toml::from_str(&serialized).map_err(|source| LoadError::Parse {
-        path: path.to_owned(),
-        source,
-    })
+    toml::from_str(&serialized).map_err(|source| LoadError::Parse { location, source })
 }
 
 #[cfg(test)]
