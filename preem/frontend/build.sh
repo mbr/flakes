@@ -8,9 +8,9 @@ mkdir -p dist
 cp -R public/. dist/
 
 build() {
-  elm make src/Main.elm "$1" --output=dist/app.js
+  elm make src/Main.elm "$1" --output=elm-stuff/app.js
   shift
-  esbuild dist/app.js --outfile=elm-stuff/tailwind-source.js --log-level=warning
+  esbuild elm-stuff/app.js --outfile=dist/app.js --log-level=warning "$@"
   tailwindcss -i css/input.css -o dist/app.css "$@"
 }
 
