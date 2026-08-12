@@ -109,8 +109,9 @@
 
           ## Development
 
-          * `process-compose up` starts ephemeral PostgreSQL plus the backend and frontend watchers.
-          * Process Compose prints the fresh application and database ports at startup.
+          * `./dev.sh` starts ephemeral PostgreSQL plus the backend and frontend watchers.
+          * It reports dynamically assigned ports so concurrent checkouts can run without conflicts.
+          * `process-compose down` stops the development stack.
           * `cargo sqlx migrate add <name>` creates a migration from `backend/`.
           * `cargo sqlx prepare` refreshes committed query metadata while the development stack runs.
           * `./check.sh` quickly validates formatting, compilation, lints, and the frontend build.

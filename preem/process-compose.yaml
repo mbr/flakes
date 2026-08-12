@@ -8,11 +8,6 @@ env_cmds:
   APP_DB_PORT: ephemeral-port-reserve
 
 processes:
-  configuration:
-    command: |
-      printf 'Application: http://127.0.0.1:%s\n' "$$APP_DEV_PORT"
-      printf 'PostgreSQL: 127.0.0.1:%s\n' "$$APP_DB_PORT"
-
   postgres:
     command: pgdb --port $${APP_DB_PORT}
     readiness_probe:
@@ -21,9 +16,6 @@ processes:
       period_seconds: 1
       timeout_seconds: 1
       failure_threshold: 30
-    depends_on:
-      configuration:
-        condition: process_completed_successfully
 
   frontend:
     working_dir: frontend
@@ -36,9 +28,6 @@ processes:
       --watch public
       --debounce 1s
       -- ./build.sh
-    depends_on:
-      configuration:
-        condition: process_completed_successfully
 
   backend:
     working_dir: backend
