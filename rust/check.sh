@@ -1,11 +1,7 @@
 #!/bin/sh
+set -eu
 
-#: Runs formatting, compilation, and linting with warnings as errors.
-
-set -e
-
-echo "rustc $(rustc --version) at $(which rustc), cargo $(cargo --version) at $(which cargo)"
+cd "$(dirname "$0")"
 
 ./format.sh --check
-RUSTFLAGS="-D warnings" cargo check
-cargo clippy -- -D warnings
+cargo clippy --all-targets -- -D warnings

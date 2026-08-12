@@ -17,11 +17,9 @@ jobs:
           git fetch origin +${{ github.ref }}:refs/remotes/origin/branch
           git checkout ${{ github.sha }}
       - name: Check
-        run: |
-          nix develop --command ./check.sh
+        run: nix develop --command ./check.sh
       - name: Test
-        run: |
-          nix develop --command cargo test
+        run: nix develop --command ./tests.sh
       - name: Build
         run: |-
           nix build

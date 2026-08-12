@@ -1,8 +1,10 @@
 #!/bin/sh
 
 #: Formats the source.
-#: Uses --config to override rustfmt settings without nightly toolchain.
+#: Uses --config to override rustfmt settings without a nightly toolchain.
 #: As a little hack, supports `--check`.
 
-cargo fmt -- --config group_imports=StdExternalCrate --config imports_granularity=Crate $@
-nixfmt $@ flake.nix
+cd "$(dirname "$0")"
+
+cargo fmt -- --config group_imports=StdExternalCrate --config imports_granularity=Crate "$@"
+nixfmt "$@" flake.nix
