@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant data-open (&:where([data-open]:not([data-open="false"])));
+@custom-variant data-selected (&:where([data-selected="true"]));
+@custom-variant data-disabled (&:where([data-disabled]:not([data-disabled="false"])));
+@custom-variant data-active (&:where([data-active]:not([data-active="false"])));
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+@custom-variant dark (&:is(.dark *));
+
 @source "../public";
 @source "../src";
-
-@custom-variant dark (&:is(.dark *));
+@source "../elm-stuff/chadcn-source";
 
 @theme inline {
   --font-heading: var(--font-sans);

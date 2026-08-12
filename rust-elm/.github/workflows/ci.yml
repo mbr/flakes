@@ -16,7 +16,6 @@ jobs:
           git remote add origin https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY.git
           git fetch origin +${{ github.ref }}:refs/remotes/origin/branch
           git checkout ${{ github.sha }}
-          git submodule update --init --recursive
       - name: Check
         run: nix develop --command ./check.sh
       - name: Build
