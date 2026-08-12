@@ -65,6 +65,17 @@ in
       description = "Group permitted to connect to a Unix listener.";
     };
 
+    caddy = {
+      enable = lib.mkEnableOption "a Caddy reverse proxy for the application";
+
+      virtualHost = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "app.example.com";
+        description = "Caddy virtual host through which to serve the application.";
+      };
+    };
+
     openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -133,9 +144,24 @@ in
         assertion = !isUnixSocket || cfg.user != cfg.socketGroup;
         message = "services.myapp.socketGroup must differ from the dynamic service user";
       }
+      {
+        assertion = !cfg.caddy.enable || cfg.caddy.virtualHost != null;
+        message = "services.myapp.caddy.virtualHost must be set when Caddy integration is enabled";
+      }
     ];
 
     users.groups.${cfg.socketGroup} = lib.mkIf isUnixSocket { };
+
+    services.caddy = lib.mkIf cfg.caddy.enable (
+      {
+        enable = lib.mkDefault true;
+      }
+      // lib.optionalAttrs (cfg.caddy.virtualHost != null) {
+        virtualHosts.${cfg.caddy.virtualHost}.extraConfig = ''
+          reverse_proxy ${lib.optionalString isUnixSocket "unix/"}${cfg.listenAddress}
+        '';
+      }
+    );
 
     services.postgresql = lib.mkIf cfg.database.createLocally {
       enable = true;
@@ -154,49 +180,54 @@ in
           tcpPort
         ];
 
-    systemd.services.myapp = {
-      description = "myapp web service";
-      wantedBy = [ "multi-user.target" ];
-      wants = [ "network-online.target" ];
-      after = [ "network-online.target" ] ++ lib.optional cfg.database.createLocally "postgresql.service";
-      requires = lib.optional cfg.database.createLocally "postgresql.service";
+    systemd.services = {
+      myapp = {
+        description = "myapp web service";
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ] ++ lib.optional cfg.database.createLocally "postgresql.service";
+        requires = lib.optional cfg.database.createLocally "postgresql.service";
 
-      serviceConfig = {
-        ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
-        User = cfg.user;
-        Group = if isUnixSocket then cfg.socketGroup else cfg.group;
-        DynamicUser = true;
-        RuntimeDirectory = lib.mkIf isUnixSocket runtimeDirectory;
-        RuntimeDirectoryMode = lib.mkIf isUnixSocket "0750";
-        Restart = "on-failure";
-        RestartSec = "5s";
+        serviceConfig = {
+          ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
+          User = cfg.user;
+          Group = if isUnixSocket then cfg.socketGroup else cfg.group;
+          DynamicUser = true;
+          RuntimeDirectory = lib.mkIf isUnixSocket runtimeDirectory;
+          RuntimeDirectoryMode = lib.mkIf isUnixSocket "0750";
+          Restart = "on-failure";
+          RestartSec = "5s";
 
-        CapabilityBoundingSet = "";
-        LockPersonality = true;
-        MemoryDenyWriteExecute = true;
-        NoNewPrivileges = true;
-        PrivateDevices = true;
-        PrivateTmp = true;
-        ProtectClock = true;
-        ProtectControlGroups = true;
-        ProtectHome = true;
-        ProtectHostname = true;
-        ProtectKernelLogs = true;
-        ProtectKernelModules = true;
-        ProtectKernelTunables = true;
-        ProtectSystem = "strict";
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_UNIX"
-        ];
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-        SystemCallArchitectures = "native";
-        SystemCallFilter = [ "@system-service" ];
-        UMask = "0077";
+          CapabilityBoundingSet = "";
+          LockPersonality = true;
+          MemoryDenyWriteExecute = true;
+          NoNewPrivileges = true;
+          PrivateDevices = true;
+          PrivateTmp = true;
+          ProtectClock = true;
+          ProtectControlGroups = true;
+          ProtectHome = true;
+          ProtectHostname = true;
+          ProtectKernelLogs = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          ProtectSystem = "strict";
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+            "AF_UNIX"
+          ];
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+          SystemCallArchitectures = "native";
+          SystemCallFilter = [ "@system-service" ];
+          UMask = "0077";
+        };
       };
+    }
+    // lib.optionalAttrs (cfg.caddy.enable && isUnixSocket) {
+      caddy.serviceConfig.SupplementaryGroups = [ cfg.socketGroup ];
     };
   };
 }

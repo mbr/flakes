@@ -120,6 +120,13 @@
           unixModule = moduleTestFor system {
             listenAddress = "/run/myapp/http.sock";
           };
+          caddyModule = moduleTestFor system {
+            listenAddress = "/run/myapp/http.sock";
+            caddy = {
+              enable = true;
+              virtualHost = "app.example.com";
+            };
+          };
         in
         {
           default = appFor.${system};
@@ -133,6 +140,15 @@
           nixos-module-unix =
             assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";
             unixModule.config.systemd.units."myapp.service".unit;
+          nixos-module-caddy =
+            assert caddyModule.config.services.caddy.enable;
+            assert
+              caddyModule.config.services.caddy.virtualHosts."app.example.com".extraConfig == ''
+                reverse_proxy unix//run/myapp/http.sock
+              '';
+            assert builtins.elem "myapp-proxy"
+              caddyModule.config.systemd.services.caddy.serviceConfig.SupplementaryGroups;
+            caddyModule.config.systemd.units."caddy.service".unit;
         }
       );
 
