@@ -120,12 +120,46 @@
           unixModule = moduleTestFor system {
             listenAddress = "/run/myapp/http.sock";
           };
+          directModule = moduleTestFor system {
+            listenAddress = "/run/myapp/http.sock";
+            socketActivation = false;
+          };
           caddyModule = moduleTestFor system {
             listenAddress = "/run/myapp/http.sock";
             caddy = {
               enable = true;
               virtualHost = "app.example.com";
             };
+          };
+          socketActivationTest = pkgsFor.${system}.testers.runNixOSTest {
+            name = "myapp-socket-activation";
+            nodes.machine = { pkgs, ... }: {
+              imports = [ appModule ];
+              services.myapp = {
+                enable = true;
+                listenAddress = "/run/myapp/http.sock";
+              };
+              environment.systemPackages = [ pkgs.curl ];
+              system.stateVersion = "26.05";
+            };
+            testScript = ''
+              start_all()
+              machine.wait_for_unit("myapp.socket")
+              machine.wait_for_unit("myapp.service")
+              machine.wait_until_succeeds(
+                  "curl --fail --silent --unix-socket /run/myapp/http.sock http://localhost/api/status"
+              )
+              machine.succeed("test $(stat --format=%a /run/myapp/http.sock) = 660")
+              machine.succeed("test $(stat --format=%G /run/myapp/http.sock) = myapp-proxy")
+
+              socket_inode = machine.succeed("stat --format=%i /run/myapp/http.sock").strip()
+              machine.succeed("systemctl restart myapp.service")
+              machine.wait_for_unit("myapp.service")
+              assert machine.succeed("stat --format=%i /run/myapp/http.sock").strip() == socket_inode
+              machine.succeed(
+                  "curl --fail --silent --unix-socket /run/myapp/http.sock http://localhost/api/status"
+              )
+            '';
           };
         in
         {
@@ -137,10 +171,20 @@
           nixos-module =
             assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
             assert tcpModule.config.systemd.services.myapp.serviceConfig.TimeoutStopSec == 30;
+            assert tcpModule.config.systemd.sockets.myapp.listenStreams == [ "[::1]:3000" ];
             tcpModule.config.systemd.units."myapp.service".unit;
           nixos-module-unix =
-            assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";
-            unixModule.config.systemd.units."myapp.service".unit;
+            assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp";
+            assert unixModule.config.systemd.sockets.myapp.socketConfig.SocketGroup == "myapp-proxy";
+            assert unixModule.config.systemd.sockets.myapp.socketConfig.SocketMode == "0660";
+            assert unixModule.config.systemd.tmpfiles.settings."10-myapp"."/run/myapp".d.group == "myapp-proxy";
+            unixModule.config.systemd.units."myapp.socket".unit;
+          nixos-module-direct =
+            assert !(directModule.config.systemd.sockets ? myapp);
+            assert directModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";
+            assert directModule.config.systemd.services.myapp.serviceConfig.RuntimeDirectory == "myapp";
+            directModule.config.systemd.units."myapp.service".unit;
+          nixos-module-integration = socketActivationTest;
           nixos-module-caddy =
             assert caddyModule.config.services.caddy.enable;
             assert

@@ -65,6 +65,12 @@ in
       description = "Group permitted to connect to a Unix listener.";
     };
 
+    socketActivation = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether systemd owns the listener and passes it to the application.";
+    };
+
     caddy = {
       enable = lib.mkEnableOption "a Caddy reverse proxy for the application";
 
@@ -158,6 +164,14 @@ in
 
     users.groups.${cfg.socketGroup} = lib.mkIf isUnixSocket { };
 
+    systemd.tmpfiles.settings."10-myapp" = lib.mkIf (cfg.socketActivation && isUnixSocket) {
+      ${socketDirectory}.d = {
+        user = "root";
+        group = cfg.socketGroup;
+        mode = "0750";
+      };
+    };
+
     services.caddy = lib.mkIf cfg.caddy.enable (
       {
         enable = lib.mkDefault true;
@@ -186,21 +200,42 @@ in
           tcpPort
         ];
 
+    systemd.sockets.myapp = lib.mkIf cfg.socketActivation {
+      description = "myapp HTTP listener";
+      wantedBy = [ "sockets.target" ];
+      listenStreams = [ cfg.listenAddress ];
+      socketConfig = {
+        Accept = false;
+        FileDescriptorName = "http";
+        NonBlocking = true;
+      }
+      // lib.optionalAttrs isUnixSocket {
+        SocketGroup = cfg.socketGroup;
+        SocketMode = "0660";
+      };
+    };
+
     systemd.services = {
       myapp = {
         description = "myapp web service";
         wantedBy = [ "multi-user.target" ];
         wants = [ "network-online.target" ];
-        after = [ "network-online.target" ] ++ lib.optional cfg.database.createLocally "postgresql.service";
-        requires = lib.optional cfg.database.createLocally "postgresql.service";
+        after = [
+          "network-online.target"
+        ]
+        ++ lib.optional cfg.database.createLocally "postgresql.service"
+        ++ lib.optional cfg.socketActivation "myapp.socket";
+        requires =
+          lib.optional cfg.database.createLocally "postgresql.service"
+          ++ lib.optional cfg.socketActivation "myapp.socket";
 
         serviceConfig = {
           ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
           User = cfg.user;
-          Group = if isUnixSocket then cfg.socketGroup else cfg.group;
+          Group = if isUnixSocket && !cfg.socketActivation then cfg.socketGroup else cfg.group;
           DynamicUser = true;
-          RuntimeDirectory = lib.mkIf isUnixSocket runtimeDirectory;
-          RuntimeDirectoryMode = lib.mkIf isUnixSocket "0750";
+          RuntimeDirectory = lib.mkIf (isUnixSocket && !cfg.socketActivation) runtimeDirectory;
+          RuntimeDirectoryMode = lib.mkIf (isUnixSocket && !cfg.socketActivation) "0750";
           Restart = "on-failure";
           RestartSec = "5s";
           TimeoutStopSec = cfg.shutdownTimeout;
