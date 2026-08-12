@@ -28,9 +28,7 @@ processes:
       log_filter = "myapp=debug,tower_http=debug"
       EOF
 
-      watchexec --restart \
-        --watch target/debug/myapp \
-        -- ./target/debug/myapp "$${config}"
+      exec ./target/debug/myapp "$${config}"
     depends_on:
       postgres:
         condition: process_healthy
