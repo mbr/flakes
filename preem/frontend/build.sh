@@ -8,18 +8,9 @@ mkdir -p dist
 cp -R public/. dist/
 
 case "${1:-}" in
-  --release)
-    elm_flag=--optimize
-    minify_flag=--minify
-    ;;
-  "")
-    elm_flag=--debug
-    minify_flag=
-    ;;
-  *)
-    echo "usage: ./build.sh [--release]" >&2
-    exit 2
-    ;;
+  --release) elm_flag=--optimize; minify_flag=--minify ;;
+  "") elm_flag=--debug; minify_flag= ;;
+  *) echo "usage: ./build.sh [--release]" >&2; exit 2 ;;
 esac
 
 elm make src/Main.elm "$elm_flag" --output=elm-stuff/app.js

@@ -4,16 +4,10 @@ set -eu
 cd "$(dirname "$0")"
 
 case "${1:-}" in
-  --check)
-    elm-format --validate src
-    nixfmt --check elm-srcs.nix package.nix
-    ;;
-  "")
-    elm-format --yes src
-    nixfmt elm-srcs.nix package.nix
-    ;;
-  *)
-    echo "usage: ./format.sh [--check]" >&2
-    exit 2
-    ;;
+  --check) elm_format_flag=--validate ;;
+  "") elm_format_flag=--yes ;;
+  *) echo "usage: ./format.sh [--check]" >&2; exit 2 ;;
 esac
+
+elm-format "$elm_format_flag" src
+nixfmt "$@" elm-srcs.nix package.nix
