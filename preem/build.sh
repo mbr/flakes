@@ -3,5 +3,5 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./backend/build.sh "$@"
+cargo build --manifest-path backend/Cargo.toml "$@"
 ./frontend/build.sh "$@"

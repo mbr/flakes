@@ -5,7 +5,6 @@ cd "$(dirname "$0")"
 
 exec watchexec --restart \
   --watch build.sh \
-  --watch backend/build.sh \
   --watch backend/Cargo.toml \
   --watch backend/Cargo.lock \
   --watch backend/migrations \
