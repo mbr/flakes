@@ -18,5 +18,7 @@ jobs:
           git checkout ${{ github.sha }}
       - name: Check
         run: nix develop --command ./check.sh
+      - name: Test
+        run: nix develop --command ./tests.sh
       - name: Build
         run: nix flake check

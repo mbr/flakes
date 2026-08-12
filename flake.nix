@@ -113,7 +113,8 @@
           * Process Compose prints the fresh application and database ports at startup.
           * `cargo sqlx migrate add <name>` creates a migration from `backend/`.
           * `cargo sqlx prepare` refreshes committed query metadata while the development stack runs.
-          * `./check.sh` validates formatting, tests, lints, and the frontend build.
+          * `./check.sh` quickly validates formatting, compilation, lints, and the frontend build.
+          * `./tests.sh` runs the test suite.
           * `./format.sh` formats Rust, Elm, and Nix sources.
           * `./frontend/update-elm-deps.sh` updates the Nix snapshot after changing `elm.json`.
 
