@@ -43,6 +43,25 @@ in
       description = "Socket address on which the application listens.";
     };
 
+    logLevel = lib.mkOption {
+      type = lib.types.enum [
+        "error"
+        "warn"
+        "info"
+        "debug"
+        "trace"
+      ];
+      default = "info";
+      description = "Application log verbosity.";
+    };
+
+    extraLogFilters = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      example = "sqlx=warn,tower_http=debug";
+      description = "Additional tracing filters appended to the application defaults.";
+    };
+
     database = {
       createLocally = lib.mkOption {
         type = lib.types.bool;
@@ -99,7 +118,9 @@ in
       environment = {
         APP_BIND_ADDRESS = cfg.bindAddress;
         DATABASE_URL = databaseUrl;
-        RUST_LOG = "myapp=info,tower_http=info";
+        RUST_LOG =
+          "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
+          + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
       };
 
       serviceConfig = {
