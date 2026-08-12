@@ -1,15 +1,16 @@
 //! Serves the JSON API and compiled frontend.
 
-use std::{net::SocketAddr, path::PathBuf};
+use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf};
 
 use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, UnixListener};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
 
 use crate::{
     api::StatusResponse,
+    config::ListenAddress,
     db,
     error::{AppError, AppResult},
 };
@@ -23,16 +24,29 @@ struct AppState {
 
 /// Runs the HTTP server.
 pub async fn run(
-    bind_address: SocketAddr,
+    listen_address: ListenAddress,
     frontend: PathBuf,
     database: PgPool,
 ) -> anyhow::Result<()> {
-    let listener = TcpListener::bind(bind_address).await?;
-    let address = listener.local_addr()?;
+    let application = router(frontend.clone(), database);
 
-    info!(%address, frontend = %frontend.display(), "web server listening");
+    match listen_address {
+        ListenAddress::Tcp(address) => {
+            let listener = TcpListener::bind(address).await?;
+            let address = listener.local_addr()?;
 
-    axum::serve(listener, router(frontend, database)).await?;
+            info!(%address, frontend = %frontend.display(), "web server listening");
+            axum::serve(listener, application).await?;
+        }
+        ListenAddress::Unix(path) => {
+            let listener = UnixListener::bind(&path)?;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o660))?;
+
+            info!(path = %path.display(), frontend = %frontend.display(), "web server listening");
+            axum::serve(listener, application).await?;
+        }
+    }
+
     Ok(())
 }
 

@@ -94,7 +94,7 @@
       );
       appModule = import ./nixos-module.nix { inherit self; };
       moduleTestFor =
-        system:
+        system: serviceConfig:
         nixpkgs.lib.nixosSystem {
           inherit system;
           modules = [
@@ -102,8 +102,8 @@
             {
               services.myapp = {
                 enable = true;
-                openFirewall = true;
-              };
+              }
+              // serviceConfig;
               system.stateVersion = "26.05";
             }
           ];
@@ -112,13 +112,27 @@
     {
       checks = eachSystem (
         system:
+        let
+          tcpModule = moduleTestFor system {
+            listenAddress = "[::1]:3000";
+            openFirewall = true;
+          };
+          unixModule = moduleTestFor system {
+            listenAddress = "/run/myapp/http.sock";
+          };
+        in
         {
           default = appFor.${system};
           backend = backendFor.${system};
           frontend = frontendFor.${system};
         }
         // nixpkgs.lib.optionalAttrs pkgsFor.${system}.stdenv.isLinux {
-          nixos-module = (moduleTestFor system).config.systemd.units."myapp.service".unit;
+          nixos-module =
+            assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
+            tcpModule.config.systemd.units."myapp.service".unit;
+          nixos-module-unix =
+            assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";
+            unixModule.config.systemd.units."myapp.service".unit;
         }
       );
 

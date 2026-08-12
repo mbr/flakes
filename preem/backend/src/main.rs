@@ -24,5 +24,5 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let database = db::connect(config.database_url).await?;
-    web::run(config.bind_address, config.frontend, database).await
+    web::run(config.listen_address, config.frontend, database).await
 }
