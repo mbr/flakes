@@ -100,31 +100,14 @@
 
           PREEM combines PostgreSQL, Rust, Elm, and environment management powered by Nix, with Axum and Tailwind CSS.
 
-          ## Setup
+          ## Initial setup
 
           * Restore script permissions with `chmod +x ./*.sh backend/*.sh frontend/*.sh`.
           * Replace `myapp` in the Rust package, flake, and NixOS module.
           * Update the package descriptions and frontend document title.
-          * Run `direnv allow` before starting Process Compose.
+          * Run `direnv allow` to load the Nix development environment.
 
-          ## Development
-
-          * `./dev.sh` starts ephemeral PostgreSQL plus the backend and frontend watchers.
-          * It reports dynamically assigned ports so concurrent checkouts can run without conflicts.
-          * `process-compose down` stops the development stack.
-          * `cargo sqlx migrate add <name>` creates a migration from `backend/`.
-          * `cargo sqlx prepare` refreshes committed query metadata while the development stack runs.
-          * `./check.sh` quickly validates formatting, compilation, lints, and the frontend build.
-          * `./tests.sh` runs the test suite.
-          * `./format.sh` formats Rust, Elm, and Nix sources.
-          * `./frontend/update-elm-deps.sh` updates the Nix snapshot after changing `elm.json`.
-
-          ## Build and deployment
-
-          * `nix flake check` builds all packages and evaluates the NixOS module.
-          * `nix build` creates the combined production package.
-          * `nix run` runs the combined package.
-          * The flake exports the service module as `nixosModules.default`.
+          See `AGENTS.md` for development, validation, and deployment operations.
         '';
       };
 
