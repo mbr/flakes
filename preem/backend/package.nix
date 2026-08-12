@@ -15,8 +15,10 @@ rustPlatform.buildRustPackage {
   src = lib.fileset.toSource {
     root = ./.;
     fileset = lib.fileset.unions [
+      ./.sqlx
       ./Cargo.lock
       ./Cargo.toml
+      ./migrations
       ./src
     ];
   };
@@ -25,7 +27,7 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [ llvmPackages.bintools ];
 
-  inherit (rustEnv) RUSTFLAGS OPENSSL_NO_VENDOR;
+  inherit (rustEnv) RUSTFLAGS OPENSSL_NO_VENDOR SQLX_OFFLINE;
 
   meta = {
     description = cargoToml.package.description;

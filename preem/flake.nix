@@ -1,10 +1,14 @@
 {
-  description = "Rust and Elm full-stack web application";
+  description = "PREEM full-stack web application";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-26.05";
     fenix = {
       url = "fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pgdb = {
+      url = "github:mbr/pgdb-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -14,6 +18,7 @@
       self,
       nixpkgs,
       fenix,
+      pgdb,
       ...
     }:
     let
@@ -48,7 +53,17 @@
           pkgsFor.${system}.lib.optionalString pkgsFor.${system}.stdenv.isLinux
             "-Clink-self-contained=-linker";
         OPENSSL_NO_VENDOR = "1";
+        SQLX_OFFLINE = "true";
       });
+      sqlxCliFor = eachSystem (
+        system:
+        let
+          sqlxDependency = (pkgsFor.${system}.lib.importTOML ./backend/Cargo.toml).dependencies.sqlx;
+          sqlxVersion = pkgsFor.${system}.lib.removePrefix "=" sqlxDependency.version;
+        in
+        assert pkgsFor.${system}.sqlx-cli.version == sqlxVersion;
+        pkgsFor.${system}.sqlx-cli
+      );
       backendFor = eachSystem (
         system:
         pkgsFor.${system}.callPackage ./backend/package.nix {
@@ -118,12 +133,15 @@
               elmPackages.elm
               elmPackages.elm-format
               nixfmt
+              pgdb.packages.${system}.default
+              postgresql
+              python3Packages.ephemeral-port-reserve
               process-compose
+              sqlxCliFor.${system}
               tailwindcss_4
               toolchainFor.${system}
               watchexec
             ];
-            APP_BIND_ADDRESS = "127.0.0.1:3000";
             APP_FRONTEND = "../frontend/dist";
             RUST_LOG = "myapp=debug,tower_http=debug";
           }
@@ -132,7 +150,7 @@
 
       formatter = eachSystem (
         system:
-        pkgsFor.${system}.writeShellScriptBin "rust-elm-format" ''
+        pkgsFor.${system}.writeShellScriptBin "preem-format" ''
           set -eu
           export PATH="${toolchainFor.${system}}/bin:$PATH"
           cargo fmt --manifest-path backend/Cargo.toml -- \

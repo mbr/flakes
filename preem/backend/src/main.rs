@@ -6,6 +6,7 @@ use clap::Parser;
 use tracing_subscriber::EnvFilter;
 
 mod api;
+mod db;
 mod error;
 mod web;
 
@@ -16,6 +17,10 @@ struct Args {
     /// Address on which the HTTP server listens.
     #[arg(long, env = "APP_BIND_ADDRESS", default_value = "127.0.0.1:3000")]
     bind_address: SocketAddr,
+
+    /// PostgreSQL connection URL.
+    #[arg(long, env = "DATABASE_URL")]
+    database_url: db::DatabaseUrl,
 
     /// Directory containing the built frontend.
     #[arg(long, env = "APP_FRONTEND")]
@@ -33,5 +38,6 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let args = Args::parse();
-    web::run(args.bind_address, args.frontend).await
+    let database = db::connect(args.database_url).await?;
+    web::run(args.bind_address, args.frontend, database).await
 }

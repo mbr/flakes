@@ -92,25 +92,27 @@
           See `DEVELOPMENT.md` for details.
         '';
       };
-      templates.rust-elm = {
-        path = ./rust-elm;
-        description = "A Rust and Elm full-stack web application";
+      templates.preem = {
+        path = ./preem;
+        description = "A PREEM full-stack web application";
         welcomeText = ''
-          # Rust and Elm web application
+          # PREEM web application
 
-          Uses Axum, Elm, Tailwind CSS, and a single self-contained flake.
+          PREEM combines PostgreSQL, Rust, Elm, and environment management powered by Nix, with Axum and Tailwind CSS.
 
           ## Setup
 
           * Restore script permissions with `chmod +x ./*.sh frontend/*.sh`.
           * Replace `myapp` in the Rust package, flake, and NixOS module.
           * Update the package descriptions and frontend document title.
-          * Run `direnv allow` or enter the environment with `nix develop`.
+          * Run `direnv allow` before starting Process Compose.
 
           ## Development
 
-          * `process-compose up` starts the backend and frontend watchers.
-          * The backend serves the application at <http://127.0.0.1:3000>.
+          * `process-compose up` starts ephemeral PostgreSQL plus the backend and frontend watchers.
+          * Process Compose prints the fresh application and database ports at startup.
+          * `cargo sqlx migrate add <name>` creates a migration from `backend/`.
+          * `cargo sqlx prepare` refreshes committed query metadata while the development stack runs.
           * `./check.sh` validates formatting, tests, lints, and the frontend build.
           * `./format.sh` formats Rust, Elm, and Nix sources.
           * `./frontend/update-elm-deps.sh` updates the Nix snapshot after changing `elm.json`.

@@ -1,0 +1,57 @@
+version: "0.5"
+
+environment:
+  - "APP_FRONTEND=../frontend/dist"
+
+env_cmds:
+  APP_DEV_PORT: ephemeral-port-reserve
+  APP_DB_PORT: ephemeral-port-reserve
+
+processes:
+  configuration:
+    command: |
+      printf 'Application: http://127.0.0.1:%s\n' "$$APP_DEV_PORT"
+      printf 'PostgreSQL: 127.0.0.1:%s\n' "$$APP_DB_PORT"
+
+  postgres:
+    command: pgdb --port $${APP_DB_PORT}
+    readiness_probe:
+      exec:
+        command: pg_isready --host 127.0.0.1 --port $${APP_DB_PORT} --username dev --dbname dev
+      period_seconds: 1
+      timeout_seconds: 1
+      failure_threshold: 30
+    depends_on:
+      configuration:
+        condition: process_completed_successfully
+
+  frontend:
+    working_dir: frontend
+    command: >-
+      watchexec --restart
+      --watch build.sh
+      --watch elm.json
+      --watch src
+      --watch css
+      --watch public
+      --debounce 1s
+      -- ./build.sh
+    depends_on:
+      configuration:
+        condition: process_completed_successfully
+
+  backend:
+    working_dir: backend
+    command: >-
+      DATABASE_URL=postgres://dev:dev@127.0.0.1:$${APP_DB_PORT}/dev
+      APP_BIND_ADDRESS=127.0.0.1:$${APP_DEV_PORT}
+      watchexec --restart
+      --watch Cargo.toml
+      --watch Cargo.lock
+      --watch migrations
+      --watch src
+      --debounce 1s
+      -- cargo run
+    depends_on:
+      postgres:
+        condition: process_healthy

@@ -1,0 +1,6 @@
+CREATE TABLE application_metadata (
+    id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
+    started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO application_metadata DEFAULT VALUES;

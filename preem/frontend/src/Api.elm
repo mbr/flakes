@@ -16,14 +16,16 @@ import Json.Decode as Decode exposing (Decoder)
 {-| Describes the service status.
 -}
 type alias Status =
-    { status : String
+    { databaseReady : Bool
+    , status : String
     }
 
 
 {-| Describes failures returned by the JSON API.
 -}
 type ApiProblem
-    = RouteNotFound
+    = Internal
+    | RouteNotFound
     | MethodNotAllowed
 
 
@@ -76,6 +78,9 @@ errorMessage error =
 problemMessage : ApiProblem -> String
 problemMessage problem =
     case problem of
+        Internal ->
+            "The server could not complete the request."
+
         RouteNotFound ->
             "The requested API route does not exist."
 
@@ -127,7 +132,8 @@ decodeResponse decoder response =
 -}
 statusDecoder : Decoder Status
 statusDecoder =
-    Decode.map Status
+    Decode.map2 Status
+        (Decode.field "database_ready" Decode.bool)
         (Decode.field "status" Decode.string)
 
 
@@ -139,6 +145,9 @@ apiProblemDecoder =
         |> Decode.andThen
             (\problemType ->
                 case problemType of
+                    "internal" ->
+                        Decode.succeed Internal
+
                     "route_not_found" ->
                         Decode.succeed RouteNotFound
 

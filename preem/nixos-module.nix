@@ -8,6 +8,11 @@
 let
   cfg = config.services.myapp;
   system = pkgs.stdenv.hostPlatform.system;
+  databaseUrl =
+    if cfg.database.createLocally then
+      "postgresql:///${cfg.database.name}?host=/run/postgresql"
+    else
+      cfg.database.url;
 in
 {
   options.services.myapp = {
@@ -37,23 +42,63 @@ in
       default = "127.0.0.1:3000";
       description = "Socket address on which the application listens.";
     };
+
+    database = {
+      createLocally = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to provision a local PostgreSQL database.";
+      };
+
+      name = lib.mkOption {
+        type = lib.types.str;
+        default = "myapp";
+        description = "Name of the local PostgreSQL database.";
+      };
+
+      url = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "PostgreSQL URL used when local provisioning is disabled.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.database.createLocally || cfg.database.url != null;
+        message = "services.myapp.database.url must be set when local database provisioning is disabled";
+      }
+    ];
+
     users.groups.${cfg.group} = { };
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.group;
     };
 
+    services.postgresql = lib.mkIf cfg.database.createLocally {
+      enable = true;
+      ensureDatabases = [ cfg.database.name ];
+      ensureUsers = [
+        {
+          name = cfg.user;
+          ensureDBOwnership = true;
+        }
+      ];
+    };
+
     systemd.services.myapp = {
       description = "myapp web service";
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
-      after = [ "network-online.target" ];
+      after = [ "network-online.target" ] ++ lib.optional cfg.database.createLocally "postgresql.service";
+      requires = lib.optional cfg.database.createLocally "postgresql.service";
 
       environment = {
         APP_BIND_ADDRESS = cfg.bindAddress;
+        DATABASE_URL = databaseUrl;
         RUST_LOG = "myapp=info,tower_http=info";
       };
 

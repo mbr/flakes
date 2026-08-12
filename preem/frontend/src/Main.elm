@@ -102,7 +102,18 @@ viewStatus status =
                 [ class "rounded-lg border bg-card p-4 text-sm shadow-sm" ]
                 [ p [ class "font-medium" ] [ text "API connected" ]
                 , p [ class "mt-1 text-muted-foreground" ]
-                    [ text ("Status: " ++ serviceStatus.status) ]
+                    [ text
+                        ("Status: "
+                            ++ serviceStatus.status
+                            ++ ", database: "
+                            ++ (if serviceStatus.databaseReady then
+                                    "ready"
+
+                                else
+                                    "unavailable"
+                               )
+                        )
+                    ]
                 ]
 
 

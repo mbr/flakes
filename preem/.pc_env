@@ -1,0 +1,4 @@
+PC_DISABLE_TUI=1
+PC_SOCKET_PATH=.process-compose.sock
+PC_LOG_FILE=.process-compose.log
+PC_LOG_NO_COLOR=1
