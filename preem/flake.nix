@@ -101,7 +101,10 @@
           modules = [
             appModule
             {
-              services.myapp.enable = true;
+              services.myapp = {
+                enable = true;
+                openFirewall = true;
+              };
               system.stateVersion = "26.05";
             }
           ];

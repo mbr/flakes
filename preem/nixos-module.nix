@@ -33,7 +33,8 @@ in
 
     group = lib.mkOption {
       type = lib.types.str;
-      default = "myapp";
+      default = cfg.user;
+      defaultText = lib.literalExpression "config.services.myapp.user";
       description = "Group under which the application runs.";
     };
 
@@ -41,6 +42,12 @@ in
       type = lib.types.str;
       default = "127.0.0.1:3000";
       description = "Socket address on which the application listens.";
+    };
+
+    openFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Whether to open the application port in the firewall.";
     };
 
     logLevel = lib.mkOption {
@@ -91,12 +98,6 @@ in
       }
     ];
 
-    users.groups.${cfg.group} = { };
-    users.users.${cfg.user} = {
-      isSystemUser = true;
-      group = cfg.group;
-    };
-
     services.postgresql = lib.mkIf cfg.database.createLocally {
       enable = true;
       ensureDatabases = [ cfg.database.name ];
@@ -107,6 +108,10 @@ in
         }
       ];
     };
+
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [
+      (lib.toInt (lib.last (lib.splitString ":" cfg.bindAddress)))
+    ];
 
     systemd.services.myapp = {
       description = "myapp web service";
@@ -127,6 +132,7 @@ in
         ExecStart = lib.getExe cfg.package;
         User = cfg.user;
         Group = cfg.group;
+        DynamicUser = true;
         Restart = "on-failure";
         RestartSec = "5s";
 
