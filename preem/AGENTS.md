@@ -6,20 +6,18 @@ Run `./build.sh` to build the debug backend and frontend. Run
 `./build.sh --release` to build both in release mode. The frontend output is
 written to `frontend/dist`, while Cargo writes the backend to `backend/target`.
 
-Run `./watch.sh` to rerun `./build.sh` when backend or frontend inputs change.
-This script only builds artifacts; it does not start or restart the development
-services.
+Run `./dev.sh` to build and activate the current development version. On its
+first invocation it starts Process Compose in the background with ephemeral
+PostgreSQL and the debug backend. On later invocations it rebuilds the
+application and restarts the existing backend. A failed build leaves the
+running backend untouched. The script waits for the backend to listen and
+prints the dynamically allocated backend and PostgreSQL ports, allowing
+concurrent checkouts and worktrees.
 
-Run `./dev.sh` after an initial build to start Process Compose in the
-background. It starts ephemeral PostgreSQL and the existing debug backend
-binary, waits for the backend to listen, and prints their dynamically allocated
-ports. Dynamic ports allow concurrent checkouts and worktrees.
-
-Process Compose reads `process-compose.yaml`. It passes development
-configuration to the backend as TOML on standard input. It does not build the
-application or restart the backend after a new build. Restart the backend with
-`process-compose process restart backend`; rebuilt frontend assets are served
-from `frontend/dist` without a backend restart.
+Process Compose reads `process-compose.yaml` and passes development
+configuration to the backend as TOML on standard input. It only manages the
+long-running processes; `dev.sh` performs builds and activates the resulting
+backend. Rebuilt frontend assets are served directly from `frontend/dist`.
 
 The direnv environment configures Process Compose to use
 `.process_compose/process-compose.sock` for its control API and

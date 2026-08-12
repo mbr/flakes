@@ -218,7 +218,6 @@
               sqlxCliFor.${system}
               tailwindcss_4
               toolchainFor.${system}
-              watchexec
             ];
           }
         );
