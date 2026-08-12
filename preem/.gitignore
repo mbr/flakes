@@ -1,7 +1,6 @@
 .direnv/
 .env
-.process-compose.log
-.process-compose.sock
+.process_compose/
 backend/target/
 frontend/dist/
 frontend/elm-stuff/
