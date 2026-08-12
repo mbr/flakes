@@ -3,6 +3,7 @@
 use std::{future::Future, io, path::PathBuf};
 
 use axum::{Json, Router, extract::State, routing::get};
+use sd_notify::NotifyState;
 use sqlx::PgPool;
 use tokio::signal::{
     ctrl_c,
@@ -39,6 +40,7 @@ pub async fn run(
         Listener::Tcp(listener) => {
             let address = listener.local_addr()?;
 
+            notify_ready()?;
             info!(%address, frontend = %frontend.display(), "web server listening");
             axum::serve(listener, application)
                 .with_graceful_shutdown(shutdown)
@@ -47,6 +49,7 @@ pub async fn run(
         Listener::Unix(listener) => {
             let path = listener.local_addr()?;
 
+            notify_ready()?;
             info!(path = ?path.as_pathname(), frontend = %frontend.display(), "web server listening");
             axum::serve(listener, application)
                 .with_graceful_shutdown(shutdown)
@@ -56,6 +59,14 @@ pub async fn run(
 
     info!("web server stopped");
     Ok(())
+}
+
+/// Reports that application startup is complete when supervised by a service manager.
+fn notify_ready() -> io::Result<()> {
+    sd_notify::notify(&[
+        NotifyState::Ready,
+        NotifyState::Status("Serving HTTP requests"),
+    ])
 }
 
 /// Waits for an operating-system shutdown signal.

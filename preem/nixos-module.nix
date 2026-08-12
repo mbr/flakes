@@ -88,6 +88,12 @@ in
       description = "Whether to open the application port in the firewall.";
     };
 
+    startupTimeout = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 60;
+      description = "Seconds allowed for database migrations and server initialization.";
+    };
+
     shutdownTimeout = lib.mkOption {
       type = lib.types.ints.positive;
       default = 30;
@@ -228,8 +234,10 @@ in
         requires =
           lib.optional cfg.database.createLocally "postgresql.service"
           ++ lib.optional cfg.socketActivation "myapp.socket";
+        startLimitIntervalSec = 0;
 
         serviceConfig = {
+          Type = "notify";
           ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
           User = cfg.user;
           Group = if isUnixSocket && !cfg.socketActivation then cfg.socketGroup else cfg.group;
@@ -237,7 +245,8 @@ in
           RuntimeDirectory = lib.mkIf (isUnixSocket && !cfg.socketActivation) runtimeDirectory;
           RuntimeDirectoryMode = lib.mkIf (isUnixSocket && !cfg.socketActivation) "0750";
           Restart = "on-failure";
-          RestartSec = "5s";
+          RestartSec = "10s";
+          TimeoutStartSec = cfg.startupTimeout;
           TimeoutStopSec = cfg.shutdownTimeout;
 
           CapabilityBoundingSet = "";
