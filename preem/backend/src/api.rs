@@ -1,9 +1,8 @@
-//! Defines public values sent across the HTTP boundary.
+//! Types sent over the wire between the Elm frontend and Rust backend.
 //!
-//! Successful handlers serialize their endpoint-specific response types.
-//! Non-success responses serialize [`ApiProblem`], whose variants and payloads
-//! must remain synchronized with `frontend/src/Api.elm`. Internal failures and
-//! private context belong in `error.rs`, not in these serializable types.
+//! This file needs to be kept in sync with `frontend/src/Api.elm`. Successful
+//! responses use endpoint-specific types, while non-success responses use the
+//! shared [`ApiProblem`] type.
 
 use axum::http::StatusCode;
 use serde::Serialize;
