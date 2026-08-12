@@ -136,6 +136,7 @@
         // nixpkgs.lib.optionalAttrs pkgsFor.${system}.stdenv.isLinux {
           nixos-module =
             assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
+            assert tcpModule.config.systemd.services.myapp.serviceConfig.TimeoutStopSec == 30;
             tcpModule.config.systemd.units."myapp.service".unit;
           nixos-module-unix =
             assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";

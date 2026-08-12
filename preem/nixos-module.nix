@@ -82,6 +82,12 @@ in
       description = "Whether to open the application port in the firewall.";
     };
 
+    shutdownTimeout = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 30;
+      description = "Seconds allowed for graceful shutdown before the application is killed.";
+    };
+
     logLevel = lib.mkOption {
       type = lib.types.enum [
         "error"
@@ -197,6 +203,7 @@ in
           RuntimeDirectoryMode = lib.mkIf isUnixSocket "0750";
           Restart = "on-failure";
           RestartSec = "5s";
+          TimeoutStopSec = cfg.shutdownTimeout;
 
           CapabilityBoundingSet = "";
           LockPersonality = true;
