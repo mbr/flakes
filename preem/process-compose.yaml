@@ -14,18 +14,6 @@ processes:
       timeout_seconds: 1
       failure_threshold: 30
 
-  frontend:
-    working_dir: frontend
-    command: >-
-      watchexec --restart
-      --watch build.sh
-      --watch elm.json
-      --watch src
-      --watch css
-      --watch public
-      --debounce 1s
-      -- ./build.sh
-
   backend:
     working_dir: backend
     command: |
@@ -41,12 +29,8 @@ processes:
       EOF
 
       watchexec --restart \
-        --watch Cargo.toml \
-        --watch Cargo.lock \
-        --watch migrations \
-        --watch src \
-        --debounce 1s \
-        -- cargo run -- "$${config}"
+        --watch target/debug/myapp \
+        -- ./target/debug/myapp "$${config}"
     depends_on:
       postgres:
         condition: process_healthy
