@@ -876,7 +876,6 @@ dependencies = [
  "axum",
  "listenfd",
  "sd-notify",
- "sec",
  "serde",
  "serde_json",
  "sqlx",
@@ -1956,15 +1955,18 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#cd85923f5f54a8763e43da3b6dc751cf1b2831bc"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#85198799b6aa1382c3f4846e7d410e23032997c1"
 dependencies = [
  "axum",
  "html-escape",
+ "sec",
  "serde",
+ "sqlx",
  "thiserror",
  "tokio",
  "toml",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -18,10 +18,10 @@ use sd_notify::NotifyState;
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
+use twelve::config::ListenAddress;
 
 use crate::{
     api::StatusResponse,
-    config::ListenAddress,
     db,
     error::{AppError, AppResult},
     listener::{self, Listener},

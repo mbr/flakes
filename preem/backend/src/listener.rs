@@ -10,8 +10,7 @@ use std::{
 use listenfd::ListenFd;
 use thiserror::Error;
 use tokio::net::{TcpListener, UnixListener};
-
-use crate::config::ListenAddress;
+use twelve::config::ListenAddress;
 
 /// Provides an HTTP listener supported by Axum.
 pub enum Listener {

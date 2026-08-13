@@ -1,43 +1,15 @@
 //! Provides PostgreSQL connection management and checked queries.
 
-use std::str::FromStr;
-
-use sec::Secret;
-use serde::{Deserialize, Deserializer, de::Error as _};
 use sqlx::{
     PgConnection, PgPool,
     migrate::{MigrateError, Migrator},
-    postgres::{PgConnectOptions, PgPoolOptions},
+    postgres::PgPoolOptions,
 };
 use thiserror::Error;
+use twelve::postgres::DatabaseUrl;
 
 /// Embedded database migrations.
 static MIGRATOR: Migrator = sqlx::migrate!();
-
-/// Holds validated PostgreSQL connection options without exposing credentials.
-#[derive(Clone, Debug)]
-pub struct DatabaseUrl(Secret<Box<PgConnectOptions>>);
-
-impl FromStr for DatabaseUrl {
-    type Err = sqlx::Error;
-
-    /// Parses PostgreSQL connection options from a URL.
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        value.parse().map(Box::new).map(Secret::new).map(Self)
-    }
-}
-
-impl<'de> Deserialize<'de> for DatabaseUrl {
-    /// Deserializes PostgreSQL connection options from a URL.
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(D::Error::custom)
-    }
-}
 
 /// Describes the database status returned to the web layer.
 #[derive(Debug)]
@@ -69,7 +41,7 @@ pub enum OpenError {
 /// Opens the PostgreSQL connection pool and applies migrations.
 pub async fn connect(database_url: DatabaseUrl) -> Result<PgPool, OpenError> {
     let pool = PgPoolOptions::new()
-        .connect_with(*database_url.0.reveal_into())
+        .connect_with(database_url.into_connect_options())
         .await
         .map_err(|source| OpenError::Connect { source })?;
 

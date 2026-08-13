@@ -1,7 +1,5 @@
 //! Runs the web application.
 
-use tracing_subscriber::EnvFilter;
-
 mod api;
 mod config;
 mod db;
@@ -15,9 +13,9 @@ async fn main() -> anyhow::Result<()> {
     let config: config::Config = twelve::config::from_args()?;
 
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::try_new(&config.log_filter)?)
+        .with_env_filter(config.core.log_filter)
         .init();
 
     let database = db::connect(config.database_url).await?;
-    web::run(config.listen_address, config.frontend, database).await
+    web::run(config.core.listen_address, config.frontend, database).await
 }
