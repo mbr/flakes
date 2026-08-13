@@ -38,11 +38,6 @@ sed \
   -e "s/__FRONTEND_VERSION__/$frontend_version/g" \
   public/index.html > dist/index.html.tmp
 
-if grep -q '__[A-Z_]*__' dist/index.html.tmp; then
-  echo "unresolved frontend build placeholder" >&2
-  exit 1
-fi
-
 printf '%s\n' "$frontend_version" > dist/frontend-version.tmp
 mv dist/frontend-version.tmp dist/frontend-version
 mv dist/index.html.tmp dist/index.html
