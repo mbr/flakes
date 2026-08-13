@@ -18,13 +18,12 @@ use sd_notify::NotifyState;
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
-use twelve::config::ListenAddress;
+use twelve::{config::ListenAddress, listener::Listener};
 
 use crate::{
     api::StatusResponse,
     db,
     error::{AppError, AppResult},
-    listener::{self, Listener},
 };
 
 /// Holds resources shared by HTTP handlers.
@@ -130,26 +129,13 @@ pub async fn run(
     let application = router(frontend.clone(), database, frontend_version);
     let shutdown = twelve::shutdown_signal();
 
-    match listener::open(&listen_address).await? {
-        Listener::Tcp(listener) => {
-            let address = listener.local_addr()?;
+    let listener = Listener::inherit_or_bind(&listen_address).await?;
 
-            notify_ready()?;
-            info!(%address, frontend = %frontend.display(), "web server listening");
-            axum::serve(listener, application)
-                .with_graceful_shutdown(shutdown)
-                .await?;
-        }
-        Listener::Unix(listener) => {
-            let path = listener.local_addr()?;
-
-            notify_ready()?;
-            info!(path = ?path.as_pathname(), frontend = %frontend.display(), "web server listening");
-            axum::serve(listener, application)
-                .with_graceful_shutdown(shutdown)
-                .await?;
-        }
-    }
+    notify_ready()?;
+    info!(address = %listener.local_address(), frontend = %frontend.display(), "web server listening");
+    axum::serve(listener, application)
+        .with_graceful_shutdown(shutdown)
+        .await?;
 
     info!("web server stopped");
     Ok(())

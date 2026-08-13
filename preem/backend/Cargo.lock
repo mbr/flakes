@@ -874,7 +874,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "listenfd",
  "sd-notify",
  "serde",
  "serde_json",
@@ -1955,10 +1954,11 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#932e8adee13946d80f3d5ac5dd9a5ee548413a53"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#bfe019f5af0aebb3a67a9cc48289cdcc4a52ed78"
 dependencies = [
  "axum",
  "html-escape",
+ "listenfd",
  "sec",
  "serde",
  "sqlx",
