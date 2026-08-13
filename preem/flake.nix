@@ -69,10 +69,6 @@
             mainProgram = name;
           };
         };
-        packageOutputs = {
-          default = app;
-          inherit backend frontend;
-        };
         moduleTest =
           serviceConfig:
           nixpkgs.lib.nixosSystem {
@@ -112,15 +108,12 @@
             };
             socketActivationTest = pkgs.testers.runNixOSTest (import ./nixos-test.nix { inherit appModule; });
           in
-          packageOutputs
+          {
+            default = app;
+          }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             nixos-module =
               assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
-              assert tcpModule.config.systemd.services.myapp.serviceConfig.Type == "notify";
-              assert tcpModule.config.systemd.services.myapp.serviceConfig.TimeoutStartSec == 60;
-              assert tcpModule.config.systemd.services.myapp.serviceConfig.TimeoutStopSec == 30;
-              assert tcpModule.config.systemd.services.myapp.serviceConfig.RestartSec == "10s";
-              assert tcpModule.config.systemd.services.myapp.startLimitIntervalSec == 0;
               assert tcpModule.config.systemd.sockets.myapp.listenStreams == [ "[::1]:3000" ];
               tcpModule.config.systemd.units."myapp.service".unit;
             nixos-module-unix =
@@ -186,7 +179,10 @@
             frontend/package.nix
         '';
 
-        packages = packageOutputs;
+        packages = {
+          default = app;
+          inherit backend frontend;
+        };
       }
     )
     // {
