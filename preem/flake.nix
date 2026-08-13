@@ -69,6 +69,10 @@
             mainProgram = name;
           };
         };
+        packageOutputs = {
+          default = app;
+          inherit backend frontend;
+        };
         moduleTest =
           serviceConfig:
           nixpkgs.lib.nixosSystem {
@@ -108,10 +112,7 @@
             };
             socketActivationTest = pkgs.testers.runNixOSTest (import ./nixos-test.nix { inherit appModule; });
           in
-          {
-            default = app;
-            inherit backend frontend;
-          }
+          packageOutputs
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             nixos-module =
               assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
@@ -185,10 +186,7 @@
             frontend/package.nix
         '';
 
-        packages = {
-          default = app;
-          inherit backend frontend;
-        };
+        packages = packageOutputs;
       }
     )
     // {
