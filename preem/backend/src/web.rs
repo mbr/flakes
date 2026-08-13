@@ -14,7 +14,6 @@ use axum::{
     response::Response,
     routing::get,
 };
-use sd_notify::NotifyState;
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
@@ -131,7 +130,7 @@ pub async fn run(
 
     let listener = Listener::bind(&listen_address).await?;
 
-    notify_ready()?;
+    twelve::systemd::ready_with_status("Serving HTTP requests")?;
     info!(address = %listener.local_address(), frontend = %frontend.display(), "web server listening");
     axum::serve(listener, application)
         .with_graceful_shutdown(shutdown)
@@ -139,14 +138,6 @@ pub async fn run(
 
     info!("web server stopped");
     Ok(())
-}
-
-/// Reports that application startup is complete when supervised by a service manager.
-fn notify_ready() -> io::Result<()> {
-    sd_notify::notify(&[
-        NotifyState::Ready,
-        NotifyState::Status("Serving HTTP requests"),
-    ])
 }
 
 /// Builds the application router.

@@ -874,7 +874,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "sd-notify",
  "serde",
  "serde_json",
  "sqlx",
@@ -1239,9 +1238,9 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "sd-notify"
-version = "0.5.0"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e4ef7359e694bfaf1dd27a30f9d760b54c00dfae9f19bd0c05a39bc9128fe76"
+checksum = "b943eadf71d8b69e661330cb0e2656e31040acf21ee7708e2c238a0ec6af2bf4"
 dependencies = [
  "libc",
 ]
@@ -1954,11 +1953,12 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#8dadef269e13afb01e2570ac932ddb88c4fdf69b"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#d711438ce32b3381bd4a91667666d5202c90e4c7"
 dependencies = [
  "axum",
  "html-escape",
  "listenfd",
+ "sd-notify",
  "sec",
  "serde",
  "sqlx",
