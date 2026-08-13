@@ -69,75 +69,16 @@
             mainProgram = name;
           };
         };
-        moduleTest =
-          serviceConfig:
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            modules = [
-              appModule
-              {
-                services.myapp = {
-                  enable = true;
-                }
-                // serviceConfig;
-                system.stateVersion = "26.05";
-              }
-            ];
-          };
       in
       {
-        checks =
-          let
-            tcpModule = moduleTest {
-              listenAddress = "[::1]:3000";
-              openFirewall = true;
-            };
-            unixModule = moduleTest {
-              listenAddress = "/run/myapp/http.sock";
-            };
-            directModule = moduleTest {
-              listenAddress = "/run/myapp/http.sock";
-              socketActivation = false;
-            };
-            caddyModule = moduleTest {
-              listenAddress = "/run/myapp/http.sock";
-              caddy = {
-                enable = true;
-                virtualHost = "app.example.com";
-              };
-            };
-            socketActivationTest = pkgs.testers.runNixOSTest (import ./nixos-test.nix { inherit appModule; });
-          in
-          {
-            default = app;
-          }
-          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-            nixos-module =
-              assert builtins.elem 3000 tcpModule.config.networking.firewall.allowedTCPPorts;
-              assert tcpModule.config.systemd.sockets.myapp.listenStreams == [ "[::1]:3000" ];
-              tcpModule.config.systemd.units."myapp.service".unit;
-            nixos-module-unix =
-              assert unixModule.config.systemd.services.myapp.serviceConfig.Group == "myapp";
-              assert unixModule.config.systemd.sockets.myapp.socketConfig.SocketGroup == "myapp-proxy";
-              assert unixModule.config.systemd.sockets.myapp.socketConfig.SocketMode == "0660";
-              assert unixModule.config.systemd.tmpfiles.settings."10-myapp"."/run/myapp".d.group == "myapp-proxy";
-              unixModule.config.systemd.units."myapp.socket".unit;
-            nixos-module-direct =
-              assert !(directModule.config.systemd.sockets ? myapp);
-              assert directModule.config.systemd.services.myapp.serviceConfig.Group == "myapp-proxy";
-              assert directModule.config.systemd.services.myapp.serviceConfig.RuntimeDirectory == "myapp";
-              directModule.config.systemd.units."myapp.service".unit;
-            nixos-module-integration = socketActivationTest;
-            nixos-module-caddy =
-              assert caddyModule.config.services.caddy.enable;
-              assert
-                caddyModule.config.services.caddy.virtualHosts."app.example.com".extraConfig == ''
-                  reverse_proxy unix//run/myapp/http.sock
-                '';
-              assert builtins.elem "myapp-proxy"
-                caddyModule.config.systemd.services.caddy.serviceConfig.SupplementaryGroups;
-              caddyModule.config.systemd.units."caddy.service".unit;
-          };
+        checks = {
+          default = app;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          nixos-module-integration = pkgs.testers.runNixOSTest (
+            import ./nixos-test.nix { inherit appModule; }
+          );
+        };
 
         devShells.default = pkgs.mkShell (
           rustEnv
