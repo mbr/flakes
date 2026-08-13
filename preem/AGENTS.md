@@ -2,38 +2,10 @@
 
 ## Development helpers
 
-Run `./build.sh` to build the debug backend and frontend. Run
-`./build.sh --release` to build both in release mode. The frontend output is
-written to `frontend/dist`, while Cargo writes the backend to `backend/target`.
-
-Run `./dev.sh` to build and activate the current development version. On its
-first invocation it starts Process Compose in the background with ephemeral
-PostgreSQL and the debug backend. On later invocations it rebuilds the
-application and restarts the existing backend. A failed build leaves the
-running backend untouched. The script waits for the backend to listen and
-prints the dynamically allocated backend and PostgreSQL ports, allowing
-concurrent checkouts and worktrees.
-
-Process Compose reads `process-compose.yaml` and passes development
-configuration to the backend as TOML on standard input. It only manages the
-long-running processes; `dev.sh` performs builds and activates the resulting
-backend. Rebuilt frontend assets are served directly from `frontend/dist`.
-
-The direnv environment configures Process Compose to use
-`.process_compose/process-compose.sock` for its control API and
-`.process_compose/process-compose.log` for logs. The directory is local runtime
-state and is ignored by Git. Common commands are:
-
-```sh
-process-compose process list
-process-compose process ports backend
-process-compose process logs backend
-process-compose process restart backend
-process-compose down
-```
-
-The backend otherwise takes one mandatory configuration argument. A path loads
-a TOML file; `-` loads TOML from standard input.
+Running `./dev.sh` builds and runs a complete local development instance,
+including PostgreSQL. It prints the backend and PostgreSQL ports, which are
+assigned dynamically so multiple working copies can run on the same machine.
+Run `process-compose down` to stop the instance.
 
 ## Database changes
 
