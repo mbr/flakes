@@ -22,6 +22,11 @@
     machine.wait_for_unit("myapp.service")
     machine.wait_for_unit("caddy.service")
 
+    after = machine.succeed("systemctl show myapp.service --property=After --value").split()
+    requires = machine.succeed("systemctl show myapp.service --property=Requires --value").split()
+    assert "postgresql-setup.service" in after
+    assert "postgresql-setup.service" in requires
+
     machine.wait_until_succeeds("curl --fail --silent http://localhost/api/status")
     machine.succeed("curl --fail --silent http://localhost/")
 

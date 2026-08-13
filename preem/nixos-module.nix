@@ -232,9 +232,17 @@ in
         after = [
           "network-online.target"
         ]
-        ++ lib.optional cfg.database.createLocally "postgresql.service"
+        ++ lib.optionals cfg.database.createLocally [
+          "postgresql.service"
+          "postgresql-setup.service"
+        ]
         ++ [ "myapp.socket" ];
-        requires = lib.optional cfg.database.createLocally "postgresql.service" ++ [ "myapp.socket" ];
+        requires =
+          lib.optionals cfg.database.createLocally [
+            "postgresql.service"
+            "postgresql-setup.service"
+          ]
+          ++ [ "myapp.socket" ];
         startLimitIntervalSec = 0;
 
         serviceConfig = {
