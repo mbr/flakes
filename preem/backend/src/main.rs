@@ -12,7 +12,7 @@ mod web;
 /// Runs the web application.
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = config::Config::from_args()?;
+    let config: config::Config = twelve::config::from_args()?;
 
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::try_new(&config.log_filter)?)
