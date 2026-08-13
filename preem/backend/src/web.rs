@@ -129,7 +129,7 @@ pub async fn run(
     let application = router(frontend.clone(), database, frontend_version);
     let shutdown = twelve::shutdown_signal();
 
-    let listener = Listener::inherit_or_bind(&listen_address).await?;
+    let listener = Listener::bind(&listen_address).await?;
 
     notify_ready()?;
     info!(address = %listener.local_address(), frontend = %frontend.display(), "web server listening");

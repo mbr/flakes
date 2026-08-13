@@ -28,7 +28,7 @@ let
     "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
     + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
   configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
-    listen_address = listenAddress;
+    listen_address = "fd://3";
     database_url = databaseUrl;
     frontend = "${cfg.package}/share/myapp/frontend";
     log_filter = logFilter;
@@ -62,7 +62,7 @@ in
       type = lib.types.nullOr lib.types.str;
       default = null;
       example = "/run/myapp/http.sock";
-      description = "TCP socket address or absolute Unix socket path on which the application listens. When null, selects a private Unix socket with Caddy integration and a local TCP socket otherwise.";
+      description = "TCP socket address or absolute Unix socket path configured for the systemd socket. When null, selects a private Unix socket with Caddy integration and a local TCP socket otherwise.";
     };
 
     socketGroup = lib.mkOption {
