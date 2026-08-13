@@ -7,6 +7,12 @@ including PostgreSQL. It prints the backend and PostgreSQL ports, which are
 assigned dynamically so multiple working copies can run on the same machine.
 Run `process-compose down` to stop the instance.
 
+After making changes, run `./format.sh && ./check.sh && ./test.sh` to format the
+sources, run static and build checks, and execute the test suite.
+
+After changing `frontend/elm.json`, run `./frontend/update-elm-deps.sh` to
+refresh the Nix dependency snapshot.
+
 ## Database changes
 
 Create migrations from `backend/`:
@@ -22,16 +28,6 @@ PostgreSQL port reported by `./dev.sh`:
 cd backend
 DATABASE_URL=postgres://dev:dev@127.0.0.1:<port>/dev cargo sqlx prepare
 ```
-
-## Validation and formatting
-
-- `./check.sh` checks formatting, compilation, lints, and the frontend build.
-- `./tests.sh` runs the test suite.
-- `./format.sh` formats Rust, Elm, and Nix sources.
-- `./frontend/update-elm-deps.sh` refreshes the Nix dependency snapshot after
-  changing `frontend/elm.json`.
-
-Run checks before formatting final changes.
 
 ## Build and deployment
 
