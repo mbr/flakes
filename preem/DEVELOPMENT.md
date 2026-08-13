@@ -33,12 +33,11 @@ Create migrations from `backend/`:
 cargo sqlx migrate add <name>
 ```
 
-Refresh committed query metadata against the development database using the
-PostgreSQL port reported by `./dev.sh`:
+After changing migrations or checked queries, apply the migrations to a fresh
+temporary database and refresh the committed query metadata:
 
 ```sh
-cd backend
-DATABASE_URL=postgres://dev:dev@127.0.0.1:<port>/dev cargo sqlx prepare
+./prepare.sh
 ```
 
 ## Deployment
