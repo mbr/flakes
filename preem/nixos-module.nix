@@ -8,10 +8,16 @@
 let
   cfg = config.services.myapp;
   system = pkgs.stdenv.hostPlatform.system;
-  isUnixSocket = lib.hasPrefix "/" cfg.listenAddress;
-  socketDirectory = builtins.dirOf cfg.listenAddress;
-  runtimeDirectory = lib.removePrefix "/run/" socketDirectory;
-  tcpPortMatch = builtins.match "^.*:([0-9]+)$" cfg.listenAddress;
+  listenAddress =
+    if cfg.listenAddress != null then
+      cfg.listenAddress
+    else if cfg.caddy.enable then
+      "/run/myapp/http.sock"
+    else
+      "127.0.0.1:3000";
+  isUnixSocket = lib.hasPrefix "/" listenAddress;
+  socketDirectory = builtins.dirOf listenAddress;
+  tcpPortMatch = builtins.match "^.*:([0-9]+)$" listenAddress;
   tcpPort = if tcpPortMatch == null then null else lib.toInt (lib.head tcpPortMatch);
   databaseUrl =
     if cfg.database.createLocally then
@@ -22,7 +28,7 @@ let
     "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
     + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
   configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
-    listen_address = cfg.listenAddress;
+    listen_address = listenAddress;
     database_url = databaseUrl;
     frontend = "${cfg.package}/share/myapp/frontend";
     log_filter = logFilter;
@@ -53,22 +59,16 @@ in
     };
 
     listenAddress = lib.mkOption {
-      type = lib.types.str;
-      default = "127.0.0.1:3000";
+      type = lib.types.nullOr lib.types.str;
+      default = null;
       example = "/run/myapp/http.sock";
-      description = "TCP socket address or absolute Unix socket path on which the application listens.";
+      description = "TCP socket address or absolute Unix socket path on which the application listens. When null, selects a private Unix socket with Caddy integration and a local TCP socket otherwise.";
     };
 
     socketGroup = lib.mkOption {
       type = lib.types.str;
       default = "myapp-proxy";
       description = "Group permitted to connect to a Unix listener.";
-    };
-
-    socketActivation = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Whether systemd owns the listener and passes it to the application.";
     };
 
     caddy = {
@@ -148,7 +148,7 @@ in
       }
       {
         assertion = isUnixSocket || tcpPort != null;
-        message = "services.myapp.listenAddress must be a TCP socket address or absolute Unix socket path";
+        message = "services.myapp.listenAddress must be null, a TCP socket address, or an absolute Unix socket path";
       }
       {
         assertion = !isUnixSocket || lib.hasPrefix "/run/" socketDirectory;
@@ -157,6 +157,10 @@ in
       {
         assertion = !isUnixSocket || !cfg.openFirewall;
         message = "services.myapp.openFirewall cannot be enabled with a Unix listener";
+      }
+      {
+        assertion = !cfg.caddy.enable || !cfg.openFirewall;
+        message = "services.myapp.openFirewall cannot be enabled with Caddy integration";
       }
       {
         assertion = !isUnixSocket || cfg.user != cfg.socketGroup;
@@ -170,7 +174,7 @@ in
 
     users.groups.${cfg.socketGroup} = lib.mkIf isUnixSocket { };
 
-    systemd.tmpfiles.settings."10-myapp" = lib.mkIf (cfg.socketActivation && isUnixSocket) {
+    systemd.tmpfiles.settings."10-myapp" = lib.mkIf isUnixSocket {
       ${socketDirectory}.d = {
         user = "root";
         group = cfg.socketGroup;
@@ -184,7 +188,7 @@ in
       }
       // lib.optionalAttrs (cfg.caddy.virtualHost != null) {
         virtualHosts.${cfg.caddy.virtualHost}.extraConfig = ''
-          reverse_proxy ${lib.optionalString isUnixSocket "unix/"}${cfg.listenAddress}
+          reverse_proxy ${lib.optionalString isUnixSocket "unix/"}${listenAddress}
         '';
       }
     );
@@ -206,14 +210,13 @@ in
           tcpPort
         ];
 
-    systemd.sockets.myapp = lib.mkIf cfg.socketActivation {
+    systemd.sockets.myapp = {
       description = "myapp HTTP listener";
       wantedBy = [ "sockets.target" ];
-      listenStreams = [ cfg.listenAddress ];
+      listenStreams = [ listenAddress ];
       socketConfig = {
         Accept = false;
         FileDescriptorName = "http";
-        NonBlocking = true;
       }
       // lib.optionalAttrs isUnixSocket {
         SocketGroup = cfg.socketGroup;
@@ -224,26 +227,22 @@ in
     systemd.services = {
       myapp = {
         description = "myapp web service";
-        wantedBy = [ "multi-user.target" ];
+        wantedBy = lib.mkDefault [ "multi-user.target" ];
         wants = [ "network-online.target" ];
         after = [
           "network-online.target"
         ]
         ++ lib.optional cfg.database.createLocally "postgresql.service"
-        ++ lib.optional cfg.socketActivation "myapp.socket";
-        requires =
-          lib.optional cfg.database.createLocally "postgresql.service"
-          ++ lib.optional cfg.socketActivation "myapp.socket";
+        ++ [ "myapp.socket" ];
+        requires = lib.optional cfg.database.createLocally "postgresql.service" ++ [ "myapp.socket" ];
         startLimitIntervalSec = 0;
 
         serviceConfig = {
           Type = "notify";
           ExecStart = "${lib.getExe cfg.package} ${configurationFile}";
           User = cfg.user;
-          Group = if isUnixSocket && !cfg.socketActivation then cfg.socketGroup else cfg.group;
+          Group = cfg.group;
           DynamicUser = true;
-          RuntimeDirectory = lib.mkIf (isUnixSocket && !cfg.socketActivation) runtimeDirectory;
-          RuntimeDirectoryMode = lib.mkIf (isUnixSocket && !cfg.socketActivation) "0750";
           Restart = "on-failure";
           RestartSec = "10s";
           TimeoutStartSec = cfg.startupTimeout;

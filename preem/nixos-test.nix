@@ -1,14 +1,17 @@
 { appModule }:
 
 {
-  name = "myapp-socket-activation";
+  name = "myapp-caddy-socket-activation";
   nodes.machine =
     { pkgs, ... }:
     {
       imports = [ appModule ];
       services.myapp = {
         enable = true;
-        listenAddress = "/run/myapp/http.sock";
+        caddy = {
+          enable = true;
+          virtualHost = "http://localhost";
+        };
       };
       environment.systemPackages = [ pkgs.curl ];
       system.stateVersion = "26.05";
@@ -19,6 +22,8 @@
     start_all()
     machine.wait_for_unit("myapp.socket")
     machine.wait_for_unit("myapp.service")
+    machine.wait_for_unit("caddy.service")
+    machine.wait_until_succeeds("curl --fail --silent http://localhost/api/status")
     machine.wait_until_succeeds(
         "curl --fail --silent --unix-socket /run/myapp/http.sock http://localhost/api/status"
     )
