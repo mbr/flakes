@@ -1955,7 +1955,7 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#85198799b6aa1382c3f4846e7d410e23032997c1"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#7b67d8d3dc3bd36e431b5a08a6b1a374a2fdd03f"
 dependencies = [
  "axum",
  "html-escape",
