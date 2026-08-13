@@ -2,14 +2,7 @@
 
 use std::path::PathBuf;
 
-use axum::{
-    Json, Router,
-    extract::{Request, State},
-    http::{HeaderValue, StatusCode, header::CACHE_CONTROL},
-    middleware::{self, Next},
-    response::Response,
-    routing::get,
-};
+use axum::{Json, Router, extract::State, middleware, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
@@ -19,7 +12,10 @@ use crate::{
     api::StatusResponse,
     db,
     error::{AppError, AppResult},
-    middleware::frontend_version::{FrontendVersion, attach},
+    middleware::{
+        frontend_cache,
+        frontend_version::{FrontendVersion, attach},
+    },
 };
 
 /// Holds resources shared by HTTP handlers.
@@ -35,7 +31,7 @@ pub async fn run(
     frontend: PathBuf,
     database: PgPool,
 ) -> anyhow::Result<()> {
-    let frontend_version = FrontendVersion::new(frontend.join("frontend-version"));
+    let frontend_version = FrontendVersion::new(frontend.join("static/frontend-version"));
     let application = router(frontend.clone(), database, frontend_version);
     let shutdown = twelve::shutdown_signal();
 
@@ -59,51 +55,15 @@ fn router(frontend: PathBuf, database: PgPool, frontend_version: FrontendVersion
         .method_not_allowed_fallback(method_not_allowed)
         .layer(middleware::from_fn_with_state(frontend_version, attach));
 
+    let frontend = Router::new()
+        .fallback_service(ServeDir::new(frontend).append_index_html_on_directories(true))
+        .layer(middleware::from_fn(frontend_cache::set));
+
     Router::new()
         .nest("/api", api)
-        .fallback_service(ServeDir::new(frontend))
-        .layer(middleware::from_fn(set_frontend_cache_policy))
+        .merge(frontend)
         .layer(TraceLayer::new_for_http())
         .with_state(AppState { database })
-}
-
-/// Sets cache headers for responses served by the frontend fallback.
-async fn set_frontend_cache_policy(request: Request, next: Next) -> Response {
-    let path = request.uri().path().to_owned();
-    let mut response = next.run(request).await;
-
-    if path != "/api" && !path.starts_with("/api/") {
-        let cache_control = if is_fingerprinted_asset(&path)
-            && (response.status().is_success() || response.status() == StatusCode::NOT_MODIFIED)
-        {
-            HeaderValue::from_static("public, max-age=31536000, immutable")
-        } else {
-            HeaderValue::from_static("no-cache")
-        };
-        response.headers_mut().insert(CACHE_CONTROL, cache_control);
-    }
-
-    response
-}
-
-/// Reports whether a request path names a content-addressed frontend asset.
-fn is_fingerprinted_asset(path: &str) -> bool {
-    let Some(filename) = path.rsplit('/').next() else {
-        return false;
-    };
-    let Some(name) = filename.strip_prefix("app-") else {
-        return false;
-    };
-    let digest = name
-        .strip_suffix(".js")
-        .or_else(|| name.strip_suffix(".css"));
-
-    digest.is_some_and(|digest| {
-        digest.len() == 64
-            && digest
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-    })
 }
 
 /// Returns the current service status.
@@ -139,33 +99,25 @@ mod tests {
     use tempfile::tempdir;
     use tower::ServiceExt;
 
-    use super::{is_fingerprinted_asset, router};
+    use super::router;
     use crate::middleware::frontend_version::FrontendVersion;
 
     /// First frontend version used by the tests.
     const VERSION_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-    /// Recognizes only generated content-addressed asset names.
-    #[test]
-    fn recognizes_fingerprinted_assets() {
-        assert!(is_fingerprinted_asset(&format!("/app-{VERSION_A}.js")));
-        assert!(is_fingerprinted_asset(&format!("/app-{VERSION_A}.css")));
-        assert!(!is_fingerprinted_asset("/app.js"));
-        assert!(!is_fingerprinted_asset("/app-not-a-digest.js"));
-        assert!(!is_fingerprinted_asset(&format!("/other-{VERSION_A}.js")));
-    }
-
     /// Applies API version and frontend cache response headers.
     #[tokio::test]
     async fn applies_frontend_response_headers() {
         let frontend = tempdir().expect("temporary frontend should be created");
-        fs::write(frontend.path().join("frontend-version"), VERSION_A)
+        let static_assets = frontend.path().join("static");
+        let versioned_assets = static_assets.join(VERSION_A);
+        fs::create_dir_all(&versioned_assets).expect("asset directory should be created");
+        fs::write(static_assets.join("frontend-version"), VERSION_A)
             .expect("manifest should be written");
         fs::write(frontend.path().join("index.html"), "<!doctype html>")
             .expect("index should be written");
-        fs::write(frontend.path().join(format!("app-{VERSION_A}.js")), "")
-            .expect("asset should be written");
-        let frontend_version = FrontendVersion::new(frontend.path().join("frontend-version"));
+        fs::write(versioned_assets.join("app.js"), "").expect("asset should be written");
+        let frontend_version = FrontendVersion::new(static_assets.join("frontend-version"));
         let database = PgPoolOptions::new()
             .connect_lazy("postgres://dev:dev@localhost/dev")
             .expect("database URL should be valid");
@@ -199,7 +151,7 @@ mod tests {
         let asset_response = application
             .oneshot(
                 Request::builder()
-                    .uri(format!("/app-{VERSION_A}.js"))
+                    .uri(format!("/static/{VERSION_A}/app.js"))
                     .body(Body::empty())
                     .expect("asset request should be built"),
             )

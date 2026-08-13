@@ -14,10 +14,10 @@ sources, run static and build checks, and execute the test suite. Run
 After changing `frontend/elm.json`, run `./frontend/update-elm-deps.sh` to
 refresh the Nix dependency snapshot.
 
-The frontend build fingerprints its JavaScript and CSS assets, injects their
-names and an aggregate version into `dist/index.html`, and writes the version
-to `dist/frontend-version`. The backend adds that version to API responses so
-a running Elm application can offer to reload after a frontend rebuild.
+The frontend build places each asset set under its aggregate version in
+`dist/static`, injects that version into `dist/index.html`, and writes it to
+`dist/static/frontend-version`. The backend adds that version to API responses
+so a running Elm application can offer to reload after a frontend rebuild.
 
 The HTTP API contract is mirrored in `backend/src/api.rs` and
 `frontend/src/Api.elm`. Keep the serialized Rust types and Elm decoders in sync.
