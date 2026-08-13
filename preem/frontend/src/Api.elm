@@ -1,4 +1,4 @@
-module Api exposing (ApiProblem(..), Error(..), Status, errorMessage, getStatus)
+module Api exposing (ApiProblem(..), Completion, Error(..), Status, errorMessage, getStatus)
 
 {-| Defines the browser side of the HTTP transport contract.
 
@@ -9,6 +9,7 @@ and payloads synchronized with `backend/src/api.rs`.
 
 -}
 
+import Dict
 import Http
 import Json.Decode as Decode exposing (Decoder)
 
@@ -18,6 +19,14 @@ import Json.Decode as Decode exposing (Decoder)
 type alias Status =
     { databaseReady : Bool
     , status : String
+    }
+
+
+{-| Associates an API result message with response-wide metadata.
+-}
+type alias Completion msg =
+    { frontendVersion : String
+    , originalMessage : msg
     }
 
 
@@ -44,10 +53,10 @@ type Error
 
 {-| Fetches the current service status.
 -}
-getStatus : (Result Error Status -> msg) -> Cmd msg
-getStatus toMessage =
+getStatus : (Result Error Status -> msg) -> (Completion msg -> msg) -> Cmd msg
+getStatus toMessage toCompletion =
     Http.get
-        { expect = expectJson statusDecoder toMessage
+        { expect = expectJson statusDecoder toMessage toCompletion
         , url = "/api/status"
         }
 
@@ -90,42 +99,77 @@ problemMessage problem =
 
 {-| Decodes successful JSON and typed API problems according to HTTP status.
 -}
-expectJson : Decoder value -> (Result Error value -> msg) -> Http.Expect msg
-expectJson decoder toMessage =
-    Http.expectStringResponse toMessage
-        (decodeResponse decoder)
+expectJson : Decoder value -> (Result Error value -> msg) -> (Completion msg -> msg) -> Http.Expect msg
+expectJson decoder toMessage toCompletion =
+    Http.expectStringResponse
+        (dispatchCompletion toCompletion)
+        (decodeResponse decoder toMessage)
 
 
-{-| Decodes one HTTP response into the application error model.
+{-| Dispatches either a transport failure or completed HTTP response.
 -}
-decodeResponse : Decoder value -> Http.Response String -> Result Error value
-decodeResponse decoder response =
+dispatchCompletion : (Completion msg -> msg) -> Result msg (Completion msg) -> msg
+dispatchCompletion toCompletion completion =
+    case completion of
+        Err message ->
+            message
+
+        Ok completed ->
+            toCompletion completed
+
+
+{-| Decodes one HTTP response and preserves its frontend version.
+-}
+decodeResponse : Decoder value -> (Result Error value -> msg) -> Http.Response String -> Result msg (Completion msg)
+decodeResponse decoder toMessage response =
     case response of
         Http.BadUrl_ url ->
-            Err (BadUrl url)
+            Err (toMessage (Err (BadUrl url)))
 
         Http.Timeout_ ->
-            Err Timeout
+            Err (toMessage (Err Timeout))
 
         Http.NetworkError_ ->
-            Err NetworkError
+            Err (toMessage (Err NetworkError))
 
         Http.BadStatus_ metadata body ->
-            case Decode.decodeString apiProblemDecoder body of
-                Ok problem ->
-                    Err
-                        (Rejected
-                            { problem = problem
-                            , status = metadata.statusCode
-                            }
-                        )
+            Decode.decodeString apiProblemDecoder body
+                |> Result.mapError (Decode.errorToString >> InvalidResponse)
+                |> Result.andThen
+                    (\problem ->
+                        Err
+                            (Rejected
+                                { problem = problem
+                                , status = metadata.statusCode
+                                }
+                            )
+                    )
+                |> completeResponse metadata toMessage
 
-                Err decodeError ->
-                    Err (InvalidResponse (Decode.errorToString decodeError))
-
-        Http.GoodStatus_ _ body ->
+        Http.GoodStatus_ metadata body ->
             Decode.decodeString decoder body
                 |> Result.mapError (Decode.errorToString >> InvalidResponse)
+                |> completeResponse metadata toMessage
+
+
+{-| Wraps an endpoint result with metadata shared by every API response.
+-}
+completeResponse : Http.Metadata -> (Result Error value -> msg) -> Result Error value -> Result msg (Completion msg)
+completeResponse metadata toMessage result =
+    case Dict.get "frontend-version" metadata.headers of
+        Just frontendVersion ->
+            Ok
+                { frontendVersion = frontendVersion
+                , originalMessage = toMessage result
+                }
+
+        Nothing ->
+            Err
+                (toMessage
+                    (Err
+                        (InvalidResponse "The API response is missing its frontend version.")
+                    )
+                )
 
 
 {-| Decodes the service status contract.
