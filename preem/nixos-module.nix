@@ -28,7 +28,7 @@ let
     "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
     + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
   configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
-    listen_address = "fd://3";
+    listen_address = "systemd";
     database_url = databaseUrl;
     frontend = "${cfg.package}/share/myapp/frontend";
     log_filter = logFilter;
