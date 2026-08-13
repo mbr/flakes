@@ -13,6 +13,10 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -22,6 +26,7 @@
       fenix,
       flake-utils,
       pgdb,
+      treefmt-nix,
       ...
     }:
     let
@@ -69,10 +74,29 @@
             mainProgram = name;
           };
         };
+        treefmtEval = treefmt-nix.lib.evalModule pkgs {
+          projectRootFile = "flake.nix";
+          programs = {
+            elm-format.enable = true;
+            nixfmt.enable = true;
+            rustfmt = {
+              enable = true;
+              edition = "2024";
+              package = toolchain;
+            };
+          };
+          settings.formatter.rustfmt.options = [
+            "--config"
+            "group_imports=StdExternalCrate"
+            "--config"
+            "imports_granularity=Crate"
+          ];
+        };
       in
       {
         checks = {
           default = app;
+          formatting = treefmtEval.config.build.check self;
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
           nixos-module-integration = pkgs.testers.runNixOSTest (
@@ -90,9 +114,7 @@
             packages = with pkgs; [
               elm2nix
               elmPackages.elm
-              elmPackages.elm-format
               esbuild
-              nixfmt
               pgdb.packages.${system}.default
               postgresql
               python3Packages.ephemeral-port-reserve
@@ -104,21 +126,7 @@
           }
         );
 
-        formatter = pkgs.writeShellScriptBin "preem-format" ''
-          set -eu
-          export PATH="${toolchain}/bin:$PATH"
-          cargo fmt --manifest-path backend/Cargo.toml -- \
-            --config group_imports=StdExternalCrate \
-            --config imports_granularity=Crate
-          ${pkgs.elmPackages.elm-format}/bin/elm-format --yes frontend/src
-          ${pkgs.nixfmt}/bin/nixfmt \
-            flake.nix \
-            nixos-module.nix \
-            nixos-test.nix \
-            backend/package.nix \
-            frontend/elm-srcs.nix \
-            frontend/package.nix
-        '';
+        formatter = treefmtEval.config.build.wrapper;
 
         packages = {
           default = app;

@@ -7,9 +7,9 @@ including PostgreSQL. It prints the backend and PostgreSQL ports, which are
 assigned dynamically so multiple working copies can run on the same machine.
 Run `process-compose down` to stop the instance.
 
-After making changes, run `./format.sh && ./check.sh && ./test.sh` to format the
-sources, run static and build checks, and execute the test suite. After changing
-Nix packaging or the NixOS module, also run `nix flake check`.
+After making changes, run `nix fmt`, `./check.sh`, and `./test.sh` to format the
+sources, run static and build checks, and execute the test suite. Run
+`nix flake check` to validate formatting and Nix integration.
 
 After changing `frontend/elm.json`, run `./frontend/update-elm-deps.sh` to
 refresh the Nix dependency snapshot.
