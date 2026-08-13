@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Builds the fingerprinted frontend assets.
+
 set -eu
 
 cd "$(dirname "$0")"

@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Refreshes SQLx query metadata against a temporary database.
+
 set -eu
 
 cd "$(dirname "$0")"

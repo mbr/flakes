@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Builds the backend and frontend artifacts.
+
 set -eu
 
 cd "$(dirname "$0")"

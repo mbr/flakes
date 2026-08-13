@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Builds and starts or refreshes the development services.
+
 set -eu
 
 cd "$(dirname "$0")"

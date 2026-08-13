@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Formats all project sources and Nix expressions.
+
 set -eu
 
 cd "$(dirname "$0")"

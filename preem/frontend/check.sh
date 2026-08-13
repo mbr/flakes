@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Checks frontend formatting and builds its assets.
+
 set -eu
 
 cd "$(dirname "$0")"

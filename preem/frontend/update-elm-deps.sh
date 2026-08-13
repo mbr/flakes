@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Regenerates the pinned Elm dependency set.
+
 set -eu
 
 cd "$(dirname "$0")"

@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Formats or validates the Elm sources.
+
 set -eu
 
 cd "$(dirname "$0")"

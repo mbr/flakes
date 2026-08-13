@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Runs project formatting and build checks.
+
 set -eu
 
 cd "$(dirname "$0")"
