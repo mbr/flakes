@@ -3,4 +3,4 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./backend/test.sh
+cargo test --manifest-path backend/Cargo.toml
