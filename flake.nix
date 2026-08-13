@@ -107,7 +107,7 @@
           * Update the package descriptions and frontend document title.
           * Run `direnv allow` to load the Nix development environment.
 
-          See `AGENTS.md` for development, validation, and deployment operations.
+          See `DEVELOPMENT.md` for development, validation, and deployment operations.
         '';
       };
 
