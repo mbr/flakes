@@ -508,6 +508,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "html-escape"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9356095b4b41197bba32173600e1582792cda618f65d12f68e2e77d273413c5"
+
+[[package]]
 name = "http"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -882,6 +888,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "twelve",
 ]
 
 [[package]]
@@ -1943,6 +1950,18 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
+]
+
+[[package]]
+name = "twelve"
+version = "0.3.0"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#c586cd81806a886b75342c7ba667ddb9acee02ce"
+dependencies = [
+ "axum",
+ "html-escape",
+ "thiserror",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

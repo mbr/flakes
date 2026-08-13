@@ -1,9 +1,7 @@
 //! Serves the JSON API and compiled frontend.
 
 use std::{
-    fs,
-    future::Future,
-    io,
+    fs, io,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
@@ -18,10 +16,6 @@ use axum::{
 };
 use sd_notify::NotifyState;
 use sqlx::PgPool;
-use tokio::signal::{
-    ctrl_c,
-    unix::{SignalKind, signal},
-};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
 
@@ -134,7 +128,7 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let frontend_version = FrontendVersion::load(&frontend)?;
     let application = router(frontend.clone(), database, frontend_version);
-    let shutdown = shutdown_signal()?;
+    let shutdown = twelve::shutdown_signal();
 
     match listener::open(&listen_address).await? {
         Listener::Tcp(listener) => {
@@ -167,24 +161,6 @@ fn notify_ready() -> io::Result<()> {
         NotifyState::Ready,
         NotifyState::Status("Serving HTTP requests"),
     ])
-}
-
-/// Waits for an operating-system shutdown signal.
-fn shutdown_signal() -> io::Result<impl Future<Output = ()>> {
-    let mut terminate = signal(SignalKind::terminate())?;
-
-    Ok(async move {
-        tokio::select! {
-            result = ctrl_c() => {
-                if let Err(error) = result {
-                    tracing::warn!(%error, "failed to receive interrupt signal");
-                }
-            }
-            _ = terminate.recv() => {}
-        }
-
-        info!("shutdown signal received");
-    })
 }
 
 /// Builds the application router.
