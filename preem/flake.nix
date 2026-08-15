@@ -36,7 +36,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        toolchain = fenix.packages.${system}.stable.withComponents [
+        buildToolchain = fenix.packages.${system}.stable.minimalToolchain;
+        devToolchain = fenix.packages.${system}.stable.withComponents [
           "cargo"
           "clippy"
           "rust-analyzer"
@@ -45,11 +46,14 @@
           "rustfmt"
         ];
         rustPlatform = pkgs.makeRustPlatform {
-          cargo = toolchain;
-          rustc = toolchain;
+          cargo = buildToolchain;
+          rustc = buildToolchain;
         };
         rustEnv = {
-          RUSTFLAGS = pkgs.lib.optionalString pkgs.stdenv.isLinux "-Clink-self-contained=-linker";
+          RUSTFLAGS =
+            pkgs.lib.optionalString pkgs.stdenv.isLinux "-Clink-self-contained=-linker "
+            # Avoid runtime references from embedded toolchain source paths.
+            + "--remap-path-prefix=${buildToolchain}=/rustc";
           OPENSSL_NO_VENDOR = "1";
           SQLX_OFFLINE = "true";
         };
@@ -82,7 +86,7 @@
             rustfmt = {
               enable = true;
               edition = "2024";
-              package = toolchain;
+              package = devToolchain;
             };
           };
           settings.formatter.rustfmt.options = [
@@ -121,7 +125,7 @@
               process-compose
               sqlxCli
               tailwindcss_4
-              toolchain
+              devToolchain
             ];
           }
         );
