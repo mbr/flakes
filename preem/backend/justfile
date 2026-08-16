@@ -1,0 +1,61 @@
+_default:
+    @just --list
+
+# Build the backend, optionally optimized for release.
+[group('build')]
+build $mode='':
+    #!/bin/sh
+    set -eu
+
+    case "$mode" in
+      '') cargo build ;;
+      --release) cargo build --release ;;
+      *)
+        printf 'usage: just build [--release]\n' >&2
+        exit 2
+        ;;
+    esac
+
+# Lint all backend targets with warnings denied.
+[group('quality')]
+check:
+    cargo clippy --all-targets -- -D warnings
+
+# Run the backend test suite.
+[group('quality')]
+test:
+    cargo test
+
+# Create a new SQLx migration.
+[group('database')]
+add-migration $name:
+    cargo sqlx migrate add "$name"
+
+# Regenerate SQLx query metadata using a temporary database.
+[group('database')]
+prepare:
+    #!/bin/sh
+    set -eu
+
+    port=$(ephemeral-port-reserve)
+    database_url="postgres://dev:dev@127.0.0.1:$port/dev"
+
+    pgdb --port "$port" >/dev/null 2>&1 &
+    postgres_pid=$!
+    cleanup() {
+      kill "$postgres_pid" 2>/dev/null || true
+      wait "$postgres_pid" 2>/dev/null || true
+    }
+    trap cleanup 0
+    trap 'exit 1' 1 2 15
+
+    until pg_isready --host 127.0.0.1 --port "$port" --username dev --dbname dev >/dev/null 2>&1; do
+      kill -0 "$postgres_pid" 2>/dev/null || {
+        printf '%s\n' 'PostgreSQL failed to start.' >&2
+        exit 1
+      }
+      sleep 1
+    done
+
+    cargo sqlx migrate run --database-url "$database_url"
+    cargo sqlx prepare --database-url "$database_url"
