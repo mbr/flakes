@@ -1,0 +1,59 @@
+_default:
+    @just --list
+
+# Build frontend assets, optionally optimized and minified for release.
+[group('build')]
+build $mode='':
+    #!/bin/sh
+    set -eu
+
+    rm -rf dist
+    mkdir -p dist/frontend-assets dist/static
+    cp -R public/. dist/frontend-assets/
+    rm dist/frontend-assets/index.html
+
+    case "$mode" in
+      '')
+        elm_flag=--debug
+        minify_flag=
+        ;;
+      --release)
+        elm_flag=--optimize
+        minify_flag=--minify
+        ;;
+      *)
+        printf 'usage: just build [--release]\n' >&2
+        exit 2
+        ;;
+    esac
+
+    elm make src/Main.elm "$elm_flag" --output=elm-stuff/app.js
+    # Reprint Elm's JavaScript so Tailwind can recognize escaped class names.
+    esbuild elm-stuff/app.js --outfile=dist/frontend-assets/app.js --log-level=warning $minify_flag
+    tailwindcss -i css/input.css -o dist/frontend-assets/app.css $minify_flag
+
+    frontend_version=$(
+      {
+        sha256sum public/index.html
+        find dist/frontend-assets -type f -exec sha256sum {} \; | sort
+      } | sha256sum | cut -d ' ' -f 1
+    )
+    mv dist/frontend-assets "dist/static/$frontend_version"
+    sed \
+      -e "s/__FRONTEND_VERSION__/$frontend_version/g" \
+      public/index.html > dist/index.html.tmp
+
+    printf '%s\n' "$frontend_version" > dist/static/frontend-version.tmp
+    mv dist/static/frontend-version.tmp dist/static/frontend-version
+    mv dist/index.html.tmp dist/index.html
+
+# Check source code (by building it)
+[group('quality')]
+check: build
+
+# Regenerate the pinned Elm dependency snapshot used by Nix.
+[group('maintenance')]
+update-deps:
+    elm2nix convert > elm-srcs.nix
+    elm2nix snapshot --write-to registry.dat
+    nix fmt elm-srcs.nix
