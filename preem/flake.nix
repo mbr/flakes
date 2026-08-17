@@ -115,7 +115,7 @@
               backend
               frontend
             ];
-            packages = with pkgs; [
+            nativeBuildInputs = with pkgs; [
               elm2nix
               elmPackages.elm
               esbuild

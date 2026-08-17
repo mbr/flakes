@@ -70,7 +70,7 @@
           rustEnv
           // {
             inputsFrom = [ self.packages.${system}.default ];
-            buildInputs =
+            nativeBuildInputs =
               with pkgs;
               [
                 devToolchain
