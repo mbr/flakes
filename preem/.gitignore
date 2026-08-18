@@ -1,6 +1,5 @@
 .direnv/
 .env
-.process_compose/
 backend/target/
 frontend/dist/
 frontend/elm-stuff/

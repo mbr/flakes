@@ -12,32 +12,18 @@ build $mode='':
 package:
     nix build
 
-# Build and start or refresh the development services.
+# Build and run the application with a temporary PostgreSQL database.
 [group('development')]
 dev: build
-    #!/bin/sh
+    #!/usr/bin/env -S pgdb /bin/sh
     set -eu
 
-    if process-compose process get backend >/dev/null 2>&1; then
-      process-compose process restart backend
-    else
-      # Dynamic ports allow concurrent checkouts and git worktrees.
-      process-compose up --detached
-    fi
-
-    printf '%s\n' 'Waiting for the backend to listen...'
-    until process-compose process ports backend 2>/dev/null | grep -Eq 'ports: \[[0-9]'; do
-      sleep 1
-    done
-
-    process-compose process ports backend
-    process-compose process ports postgres
-    printf '%s\n' 'Stop with: just down'
-
-# Stop the development services.
-[group('development')]
-down:
-    process-compose down
+    exec backend/target/debug/myapp - <<EOF
+    listen_address = "127.0.0.1:0"
+    database_url = "$DATABASE_URL"
+    frontend = "frontend/dist"
+    log_filter = "myapp=debug,tower_http=debug"
+    EOF
 
 # Format all project sources.
 [group('quality')]

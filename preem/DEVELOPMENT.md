@@ -2,10 +2,10 @@
 
 ## Development helpers
 
-Running `just dev` builds and runs a complete local development instance,
-including PostgreSQL. It prints the backend and PostgreSQL ports, which are
-assigned dynamically so multiple working copies can run on the same machine.
-Run `just down` to stop the instance.
+Running `just dev` builds and runs the application with a fresh temporary
+PostgreSQL database. The backend logs its dynamically assigned port, allowing
+multiple working copies to run concurrently. Press `Ctrl-C` to stop the
+application and remove its database.
 
 After making changes, run `just format`, `just check`, and `just test` to format
 the sources, run static and build checks, and execute the test suite. Run

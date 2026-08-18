@@ -122,8 +122,6 @@
               just
               pgdb.packages.${system}.default
               postgresql
-              python3Packages.ephemeral-port-reserve
-              process-compose
               sqlxCli
               tailwindcss_4
               devToolchain
