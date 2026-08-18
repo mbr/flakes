@@ -1,0 +1,61 @@
+_default:
+    @just --list
+
+# Build the backend and frontend, optionally for release.
+[group('build')]
+build $mode='':
+    just --justfile backend/justfile build "$mode"
+    just --justfile frontend/justfile build "$mode"
+
+# Build the production Nix package.
+[group('build')]
+package:
+    nix build
+
+# Build and start or refresh the development services.
+[group('development')]
+dev: build
+    #!/bin/sh
+    set -eu
+
+    if process-compose process get backend >/dev/null 2>&1; then
+      process-compose process restart backend
+    else
+      # Dynamic ports allow concurrent checkouts and git worktrees.
+      process-compose up --detached
+    fi
+
+    printf '%s\n' 'Waiting for the backend to listen...'
+    until process-compose process ports backend 2>/dev/null | grep -Eq 'ports: \[[0-9]'; do
+      sleep 1
+    done
+
+    process-compose process ports backend
+    process-compose process ports postgres
+    printf '%s\n' 'Stop with: just down'
+
+# Stop the development services.
+[group('development')]
+down:
+    process-compose down
+
+# Format all project sources.
+[group('quality')]
+format:
+    nix fmt
+
+# Run package static and build checks.
+[group('quality')]
+check:
+    just --justfile backend/justfile check
+    just --justfile frontend/justfile check
+
+# Run the project test suite.
+[group('quality')]
+test:
+    just --justfile backend/justfile test
+
+# Validate formatting, packages, and NixOS integration.
+[group('quality')]
+flake-check:
+    nix flake check

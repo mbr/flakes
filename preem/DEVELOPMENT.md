@@ -2,16 +2,17 @@
 
 ## Development helpers
 
-Running `./dev.sh` builds and runs a complete local development instance,
+Running `just dev` builds and runs a complete local development instance,
 including PostgreSQL. It prints the backend and PostgreSQL ports, which are
 assigned dynamically so multiple working copies can run on the same machine.
-Run `process-compose down` to stop the instance.
+Run `just down` to stop the instance.
 
-After making changes, run `nix fmt`, `./check.sh`, and `./test.sh` to format the
-sources, run static and build checks, and execute the test suite. Run
-`nix flake check` to validate formatting and Nix integration.
+After making changes, run `just format`, `just check`, and `just test` to format
+the sources, run static and build checks, and execute the test suite. Run
+`just flake-check` to validate formatting and Nix integration. Bare `just`
+lists all repository-wide commands.
 
-After changing `frontend/elm.json`, run `./frontend/update-elm-deps.sh` to
+After changing `frontend/elm.json`, run `just update-deps` from `frontend/` to
 refresh the Nix dependency snapshot.
 
 The frontend build places each asset set under its aggregate version in
@@ -42,6 +43,6 @@ just prepare
 
 ## Deployment
 
-`nix build` creates the combined production package. NixOS deployments should
-use the service module exported as `nixosModules.default`, which generates the
-application configuration and runs that package.
+`just package` creates the combined production package. NixOS deployments
+should use the service module exported as `nixosModules.default`, which
+generates the application configuration and runs that package.

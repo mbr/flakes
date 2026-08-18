@@ -102,7 +102,6 @@
 
           ## Initial setup
 
-          * Restore script permissions with `chmod +x ./*.sh backend/*.sh frontend/*.sh`.
           * Replace `myapp` in `backend/Cargo.toml`, `backend/Cargo.lock`, `backend/src/config.rs`, `frontend/package.nix`, `nixos-module.nix`, `nixos-test.nix`, and `process-compose.yaml`.
           * Update the package descriptions and frontend document title.
           * Run `direnv allow` to load the Nix development environment.
