@@ -6,5 +6,5 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./backend/check.sh
-./frontend/check.sh
+just --justfile backend/justfile check
+just --justfile frontend/justfile check
