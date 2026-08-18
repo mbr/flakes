@@ -30,14 +30,14 @@ the generated `.sqlx` metadata committed.
 Create migrations from `backend/`:
 
 ```sh
-cargo sqlx migrate add <name>
+just add-migration <name>
 ```
 
 After changing migrations or checked queries, apply the migrations to a fresh
-temporary database and refresh the committed query metadata:
+temporary database and refresh the committed query metadata from `backend/`:
 
 ```sh
-./prepare.sh
+just prepare
 ```
 
 ## Deployment

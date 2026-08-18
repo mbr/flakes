@@ -119,6 +119,7 @@
               elm2nix
               elmPackages.elm
               esbuild
+              just
               pgdb.packages.${system}.default
               postgresql
               python3Packages.ephemeral-port-reserve
