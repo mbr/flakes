@@ -1,6 +1,7 @@
 {
   elmPackages,
   esbuild,
+  just,
   lib,
   stdenvNoCC,
   tailwindcss_4,
@@ -13,9 +14,9 @@ stdenvNoCC.mkDerivation {
   src = lib.fileset.toSource {
     root = ./.;
     fileset = lib.fileset.unions [
-      ./build.sh
       ./css
       ./elm.json
+      ./justfile
       ./public
       ./src
     ];
@@ -24,6 +25,7 @@ stdenvNoCC.mkDerivation {
   nativeBuildInputs = [
     elmPackages.elm
     esbuild
+    just
     tailwindcss_4
   ];
 
@@ -35,7 +37,7 @@ stdenvNoCC.mkDerivation {
 
   buildPhase = ''
     runHook preBuild
-    ./build.sh --release
+    just build --release
     runHook postBuild
   '';
 

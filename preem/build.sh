@@ -7,4 +7,4 @@ set -eu
 cd "$(dirname "$0")"
 
 cargo build --manifest-path backend/Cargo.toml "$@"
-./frontend/build.sh "$@"
+just --justfile frontend/justfile build "$@"
