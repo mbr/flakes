@@ -33,7 +33,7 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let frontend_version = FrontendVersion::new(frontend.join("static/frontend-version"));
     let application = router(frontend.clone(), database, frontend_version);
-    let shutdown = twelve::shutdown_signal();
+    let shutdown = twelve::shutdown::signal();
 
     let listener = Listener::bind(&listen_address).await?;
 

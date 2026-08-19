@@ -6,7 +6,7 @@ use sqlx::{
     postgres::PgPoolOptions,
 };
 use thiserror::Error;
-use twelve::postgres::DatabaseUrl;
+use twelve::config::DatabaseUrl;
 
 /// Embedded database migrations.
 static MIGRATOR: Migrator = sqlx::migrate!();

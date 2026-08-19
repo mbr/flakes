@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use serde::Deserialize;
-use twelve::{config::Core, postgres::DatabaseUrl};
+use twelve::config::{Core, DatabaseUrl};
 
 /// Configures the web application.
 #[derive(Debug, Deserialize)]
