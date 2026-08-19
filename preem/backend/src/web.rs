@@ -37,7 +37,6 @@ pub async fn run(
 
     let listener = Listener::bind(&listen_address).await?;
 
-    twelve::systemd::ready_with_status("Serving HTTP requests")?;
     info!(address = %listener.local_address(), frontend = %frontend.display(), "web server listening");
     axum::serve(listener, application)
         .with_graceful_shutdown(shutdown)

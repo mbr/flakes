@@ -21,6 +21,7 @@
     machine.wait_for_unit("myapp.service")
     machine.wait_for_unit("caddy.service")
     machine.fail("systemctl status myapp.socket")
+    assert machine.succeed("systemctl show myapp.service --property=Type --value").strip() == "exec"
 
     after = machine.succeed("systemctl show myapp.service --property=After --value").split()
     requires = machine.succeed("systemctl show myapp.service --property=Requires --value").split()
