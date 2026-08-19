@@ -6,12 +6,10 @@
     { pkgs, ... }:
     {
       imports = [ appModule ];
+      services.caddy.enable = true;
       services.myapp = {
         enable = true;
-        caddy = {
-          enable = true;
-          virtualHost = "http://localhost";
-        };
+        caddy.virtualHost = "http://localhost";
       };
       environment.systemPackages = [ pkgs.curl ];
       system.stateVersion = "26.05";
