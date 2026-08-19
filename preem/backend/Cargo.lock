@@ -502,12 +502,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "html-escape"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9356095b4b41197bba32173600e1582792cda618f65d12f68e2e77d273413c5"
-
-[[package]]
 name = "http"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1910,10 +1904,9 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#2d8e107b3cc0c48467e3d2911665f5a55818d7a5"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#ff64271fd26b826a43577f1f73698204d74a787c"
 dependencies = [
  "axum",
- "html-escape",
  "sec",
  "serde",
  "sqlx",
