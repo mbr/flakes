@@ -849,7 +849,6 @@ dependencies = [
  "tower",
  "tower-http",
  "tracing",
- "tracing-subscriber",
  "twelve",
 ]
 
@@ -1894,7 +1893,6 @@ dependencies = [
  "once_cell",
  "regex-automata",
  "sharded-slab",
- "smallvec",
  "thread_local",
  "tracing",
  "tracing-core",
@@ -1904,8 +1902,7 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3489ade71ff0e0fb29ed47b19755c200106d3e6a4a544f91d5d31a87120b1724"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#71910a53feeb4f0deac14b57ed4a67b8d7d2ccaa"
 dependencies = [
  "axum",
  "sec",

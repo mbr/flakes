@@ -12,9 +12,7 @@ mod web;
 async fn main() -> anyhow::Result<()> {
     let config: config::Config = twelve::config::from_args()?;
 
-    tracing_subscriber::fmt()
-        .with_env_filter(config.core.log_filter)
-        .init();
+    twelve::logging::init(config.core.log_filter)?;
 
     let database = db::connect(config.database_url).await?;
     web::run(config.core.listen_address, config.frontend, database).await
