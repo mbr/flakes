@@ -1,7 +1,7 @@
 { appModule }:
 
 {
-  name = "myapp-caddy-restart-retry";
+  name = "myapp-caddy-socket-activation";
   nodes.machine =
     { pkgs, ... }:
     {
@@ -18,6 +18,7 @@
     };
   testScript = ''
     start_all()
+    machine.wait_for_unit("myapp.socket")
     machine.wait_for_unit("myapp.service")
     machine.wait_for_unit("caddy.service")
 
@@ -26,17 +27,20 @@
     assert "postgresql-setup.service" in after
     assert "postgresql-setup.service" in requires
 
-    machine.fail("systemctl cat myapp.socket")
     machine.wait_until_succeeds("curl --fail --silent http://localhost/api/status")
     machine.succeed("curl --fail --silent http://localhost/")
-    machine.succeed("curl --fail --silent http://127.0.0.1:3000/api/status")
 
+    machine.succeed("test $(stat --format=%a /run/myapp/http.sock) = 660")
+    machine.succeed("test $(stat --format=%G /run/myapp/http.sock) = myapp-proxy")
+
+    socket_inode = machine.succeed("stat --format=%i /run/myapp/http.sock").strip()
     machine.succeed("systemctl stop myapp.service")
     machine.wait_until_fails("systemctl is-active --quiet myapp.service")
-    machine.succeed(
-      "systemd-run --unit=start-myapp --on-active=2s systemctl start myapp.service"
-    )
+    machine.succeed("systemctl is-active --quiet myapp.socket")
+    assert machine.succeed("stat --format=%i /run/myapp/http.sock").strip() == socket_inode
+
     machine.succeed("curl --fail --silent http://localhost/api/status")
     machine.wait_for_unit("myapp.service")
+    assert machine.succeed("stat --format=%i /run/myapp/http.sock").strip() == socket_inode
   '';
 }
