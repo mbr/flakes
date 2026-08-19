@@ -13,6 +13,10 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixdrawer = {
+      url = "github:mbr/nixdrawer";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,11 +30,12 @@
       fenix,
       flake-utils,
       pgdb,
+      nixdrawer,
       treefmt-nix,
       ...
     }:
     let
-      appModule = import ./nixos-module.nix { inherit self; };
+      appModule = import ./nixos-module.nix { inherit self nixdrawer; };
     in
     flake-utils.lib.eachDefaultSystem (
       system:
