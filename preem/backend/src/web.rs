@@ -2,28 +2,20 @@
 
 use std::path::PathBuf;
 
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{Json, Router, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use twelve::frontend::RouterExt;
 
 use crate::{
-    api::StatusResponse,
-    db,
+    api::Pong,
     error::{AppError, AppResult},
 };
-
-/// Holds resources shared by HTTP handlers.
-#[derive(Clone)]
-struct AppState {
-    /// PostgreSQL connection pool.
-    database: PgPool,
-}
 
 /// Builds the application router.
 pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
     let api = Router::new()
-        .route("/status", get(status))
+        .route("/ping", get(ping))
         .fallback(api_not_found)
         .method_not_allowed_fallback(method_not_allowed)
         .with_frontend_version(&frontend);
@@ -36,18 +28,12 @@ pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
         .nest("/api", api)
         .merge(frontend)
         .layer(TraceLayer::new_for_http())
-        .with_state(AppState { database })
+        .with_state(database)
 }
 
-/// Returns the current service status.
-async fn status(State(state): State<AppState>) -> AppResult<Json<StatusResponse>> {
-    let mut connection = state.database.acquire().await?;
-    let database_status = db::status(&mut connection).await?;
-
-    Ok(Json(StatusResponse {
-        status: "ok",
-        database_ready: database_status.ready,
-    }))
+/// Responds to an API ping.
+async fn ping() -> AppResult<Json<Pong>> {
+    Ok(Json(Pong { message: "pong" }))
 }
 
 /// Returns the structured API route error.
@@ -98,7 +84,7 @@ mod tests {
             .clone()
             .oneshot(
                 Request::builder()
-                    .uri("/api/missing")
+                    .uri("/api/ping")
                     .body(Body::empty())
                     .expect("API request should be built"),
             )

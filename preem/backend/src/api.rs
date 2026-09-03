@@ -7,14 +7,11 @@
 use axum::http::StatusCode;
 use serde::Serialize;
 
-/// Describes a successful status response.
+/// Describes a successful ping response.
 #[derive(Debug, Serialize)]
-pub struct StatusResponse {
-    /// Current service status.
-    pub status: &'static str,
-
-    /// Whether the database accepted the status query.
-    pub database_ready: bool,
+pub struct Pong {
+    /// Contains the response to the ping request.
+    pub message: &'static str,
 }
 
 /// Describes failures safe to expose through the JSON API.
@@ -46,19 +43,16 @@ impl ApiProblem {
 mod tests {
     use serde_json::json;
 
-    use super::{ApiProblem, StatusResponse};
+    use super::{ApiProblem, Pong};
 
     /// Verifies the initial cross-language transport contract.
     #[test]
     fn serializes_api_values() {
-        let response = StatusResponse {
-            status: "ok",
-            database_ready: true,
-        };
+        let response = Pong { message: "pong" };
 
         assert_eq!(
-            serde_json::to_value(response).expect("status response should serialize"),
-            json!({ "status": "ok", "database_ready": true }),
+            serde_json::to_value(response).expect("pong response should serialize"),
+            json!({ "message": "pong" }),
         );
         assert_eq!(
             serde_json::to_value(ApiProblem::RouteNotFound).expect("API problem should serialize"),

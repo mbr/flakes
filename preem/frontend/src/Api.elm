@@ -1,4 +1,4 @@
-module Api exposing (ApiProblem(..), Completion, Error(..), Status, errorMessage, getStatus)
+module Api exposing (ApiProblem(..), Completion, Error(..), Pong, errorMessage, ping)
 
 {-| Defines the browser side of the HTTP transport contract.
 
@@ -14,11 +14,10 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 
 
-{-| Describes the service status.
+{-| Describes a successful ping response.
 -}
-type alias Status =
-    { databaseReady : Bool
-    , status : String
+type alias Pong =
+    { message : String
     }
 
 
@@ -51,13 +50,13 @@ type Error
     | InvalidResponse String
 
 
-{-| Fetches the current service status.
+{-| Pings the API.
 -}
-getStatus : (Result Error Status -> msg) -> (Completion msg -> msg) -> Cmd msg
-getStatus toMessage toCompletion =
+ping : (Result Error Pong -> msg) -> (Completion msg -> msg) -> Cmd msg
+ping toMessage toCompletion =
     Http.get
-        { expect = expectJson statusDecoder toMessage toCompletion
-        , url = "/api/status"
+        { expect = expectJson pongDecoder toMessage toCompletion
+        , url = "/api/ping"
         }
 
 
@@ -172,13 +171,12 @@ completeResponse metadata toMessage result =
                 )
 
 
-{-| Decodes the service status contract.
+{-| Decodes a successful ping response.
 -}
-statusDecoder : Decoder Status
-statusDecoder =
-    Decode.map2 Status
-        (Decode.field "database_ready" Decode.bool)
-        (Decode.field "status" Decode.string)
+pongDecoder : Decoder Pong
+pongDecoder =
+    Decode.map Pong
+        (Decode.field "message" Decode.string)
 
 
 {-| Decodes the public API problem sum type.

@@ -26,7 +26,7 @@
     assert "postgresql-setup.service" in after
     assert "postgresql-setup.service" in requires
 
-    machine.wait_until_succeeds("curl --fail --silent http://localhost/api/status")
+    machine.wait_until_succeeds("curl --fail --silent http://localhost/api/ping")
     machine.succeed("curl --fail --silent http://localhost/")
 
     machine.succeed("test $(stat --format=%a /run/myapp/http.sock) = 770")
@@ -41,7 +41,7 @@
         "systemd-run --unit=myapp-delayed-start --on-active=2s "
         "/run/current-system/sw/bin/systemctl start myapp.service"
     )
-    machine.succeed("curl --fail --silent http://localhost/api/status")
+    machine.wait_until_succeeds("curl --fail --silent http://localhost/api/ping")
     machine.wait_for_unit("myapp.service")
     assert machine.succeed("stat --format=%i /run/myapp/http.sock").strip() != socket_inode
   '';

@@ -2,7 +2,6 @@
 
 mod api;
 mod config;
-mod db;
 mod error;
 mod web;
 

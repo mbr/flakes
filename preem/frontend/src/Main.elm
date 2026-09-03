@@ -34,7 +34,7 @@ type FrontendVersion
 -}
 type alias Model =
     { frontendVersion : FrontendVersion
-    , status : RemoteData Api.Error Api.Status
+    , ping : RemoteData Api.Error Api.Pong
     }
 
 
@@ -42,7 +42,7 @@ type alias Model =
 -}
 type Msg
     = ApiCompleted (Api.Completion Msg)
-    | ReceivedStatus (Result Api.Error Api.Status)
+    | ReceivedPong (Result Api.Error Api.Pong)
     | ReloadRequested
     | Retried
 
@@ -52,9 +52,9 @@ type Msg
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { frontendVersion = Current flags.frontendVersion
-      , status = Loading
+      , ping = Loading
       }
-    , Api.getStatus ReceivedStatus ApiCompleted
+    , Api.ping ReceivedPong ApiCompleted
     )
 
 
@@ -72,15 +72,15 @@ update message model =
                             model.frontendVersion
                 }
 
-        ReceivedStatus result ->
-            ( { model | status = RemoteData.fromResult result }, Cmd.none )
+        ReceivedPong result ->
+            ( { model | ping = RemoteData.fromResult result }, Cmd.none )
 
         ReloadRequested ->
             ( model, Navigation.reload )
 
         Retried ->
-            ( { model | status = Loading }
-            , Api.getStatus ReceivedStatus ApiCompleted
+            ( { model | ping = Loading }
+            , Api.ping ReceivedPong ApiCompleted
             )
 
 
@@ -116,7 +116,7 @@ view model =
                 , p [ class "text-sm text-muted-foreground" ]
                     [ text "A typed full-stack application is ready." ]
                 ]
-            , viewStatus model.status
+            , viewPing model.ping
             ]
         ]
 
@@ -144,11 +144,11 @@ viewFrontendVersion frontendVersion =
                 |> Alert.view
 
 
-{-| Renders the current API request state.
+{-| Renders the current API ping state.
 -}
-viewStatus : RemoteData Api.Error Api.Status -> Html Msg
-viewStatus status =
-    case status of
+viewPing : RemoteData Api.Error Api.Pong -> Html Msg
+viewPing pingState =
+    case pingState of
         NotAsked ->
             text ""
 
@@ -158,7 +158,7 @@ viewStatus status =
                 , attribute "role" "status"
                 , class "rounded-lg border bg-card p-4 text-sm text-muted-foreground"
                 ]
-                [ text "Checking the API..." ]
+                [ text "Pinging the API..." ]
 
         Failure error ->
             Alert.new
@@ -175,23 +175,12 @@ viewStatus status =
                 |> Alert.withVariant Alert.Destructive
                 |> Alert.view
 
-        Success serviceStatus ->
+        Success pong ->
             div
                 [ class "rounded-lg border bg-card p-4 text-sm shadow-sm" ]
                 [ p [ class "font-medium" ] [ text "API connected" ]
                 , p [ class "mt-1 text-muted-foreground" ]
-                    [ text
-                        ("Status: "
-                            ++ serviceStatus.status
-                            ++ ", database: "
-                            ++ (if serviceStatus.databaseReady then
-                                    "ready"
-
-                                else
-                                    "unavailable"
-                               )
-                        )
-                    ]
+                    [ text ("Response: " ++ pong.message) ]
                 ]
 
 
