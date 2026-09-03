@@ -13,6 +13,7 @@ async fn main() -> anyhow::Result<()> {
 
     twelve::logging::init(config.core.log_filter)?;
 
-    let database = db::connect(config.database_url).await?;
+    let database =
+        twelve::postgres::connect_and_migrate(config.database_url, &sqlx::migrate!()).await?;
     web::run(config.core.listen_address, config.frontend, database).await
 }
