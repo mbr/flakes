@@ -11,6 +11,8 @@ use axum::{
 };
 use serde::Serialize;
 
+use crate::error::AppError;
+
 /// Describes a successful ping response.
 #[derive(Debug, Serialize)]
 pub struct Pong {
@@ -39,6 +41,18 @@ impl ApiProblem {
             Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
             Self::RouteNotFound => StatusCode::NOT_FOUND,
             Self::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
+        }
+    }
+}
+
+impl From<AppError> for ApiProblem {
+    /// Converts an application failure into its safe public representation.
+    fn from(error: AppError) -> Self {
+        match error {
+            error @ AppError::Database { .. } => {
+                tracing::error!(error = ?error, "request failed");
+                Self::Internal
+            }
         }
     }
 }

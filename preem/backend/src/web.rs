@@ -7,10 +7,7 @@ use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use twelve::frontend::RouterExt;
 
-use crate::{
-    api::{ApiProblem, Pong},
-    error::AppResult,
-};
+use crate::api::{ApiProblem, Pong};
 
 /// Builds the application router.
 pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
@@ -32,8 +29,8 @@ pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
 }
 
 /// Responds to an API ping.
-async fn ping() -> AppResult<Json<Pong>> {
-    Ok(Json(Pong { message: "pong" }))
+async fn ping() -> Json<Pong> {
+    Json(Pong { message: "pong" })
 }
 
 #[cfg(test)]
