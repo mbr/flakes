@@ -6,11 +6,7 @@ use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
-use twelve::{
-    config::ListenAddress,
-    frontend::{RouterExt, version::FrontendVersion},
-    listener::Listener,
-};
+use twelve::{config::ListenAddress, frontend::RouterExt, listener::Listener};
 
 use crate::{
     api::StatusResponse,
@@ -31,8 +27,7 @@ pub async fn run(
     frontend: PathBuf,
     database: PgPool,
 ) -> anyhow::Result<()> {
-    let frontend_version = FrontendVersion::new(frontend.clone());
-    let application = router(frontend.clone(), database, frontend_version);
+    let application = router(frontend.clone(), database);
     let shutdown = twelve::shutdown::signal();
 
     let listener = Listener::bind(&listen_address).await?;
@@ -47,12 +42,12 @@ pub async fn run(
 }
 
 /// Builds the application router.
-fn router(frontend: PathBuf, database: PgPool, frontend_version: FrontendVersion) -> Router {
+fn router(frontend: PathBuf, database: PgPool) -> Router {
     let api = Router::new()
         .route("/status", get(status))
         .fallback(api_not_found)
         .method_not_allowed_fallback(method_not_allowed)
-        .with_frontend_version(frontend_version);
+        .with_frontend_version(&frontend);
 
     let frontend = Router::new()
         .fallback_service(ServeDir::new(frontend).append_index_html_on_directories(true))
@@ -97,7 +92,6 @@ mod tests {
     use sqlx::postgres::PgPoolOptions;
     use tempfile::tempdir;
     use tower::ServiceExt;
-    use twelve::frontend::version::FrontendVersion;
 
     use super::router;
 
@@ -116,11 +110,10 @@ mod tests {
         fs::write(frontend.path().join("index.html"), "<!doctype html>")
             .expect("index should be written");
         fs::write(versioned_assets.join("app.js"), "").expect("asset should be written");
-        let frontend_version = FrontendVersion::new(frontend.path().to_owned());
         let database = PgPoolOptions::new()
             .connect_lazy("postgres://dev:dev@localhost/dev")
             .expect("database URL should be valid");
-        let application = router(frontend.path().to_owned(), database, frontend_version);
+        let application = router(frontend.path().to_owned(), database);
 
         let api_response = application
             .clone()
