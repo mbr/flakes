@@ -5,8 +5,7 @@ use std::path::PathBuf;
 use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::info;
-use twelve::{config::ListenAddress, frontend::RouterExt, listener::Listener};
+use twelve::frontend::RouterExt;
 
 use crate::{
     api::StatusResponse,
@@ -21,28 +20,8 @@ struct AppState {
     database: PgPool,
 }
 
-/// Runs the HTTP server.
-pub async fn run(
-    listen_address: ListenAddress,
-    frontend: PathBuf,
-    database: PgPool,
-) -> anyhow::Result<()> {
-    let application = router(frontend.clone(), database);
-    let shutdown = twelve::shutdown::signal();
-
-    let listener = Listener::bind(&listen_address).await?;
-
-    info!(address = %listener.local_address(), frontend = %frontend.display(), "web server listening");
-    axum::serve(listener, application)
-        .with_graceful_shutdown(shutdown)
-        .await?;
-
-    info!("web server stopped");
-    Ok(())
-}
-
 /// Builds the application router.
-fn router(frontend: PathBuf, database: PgPool) -> Router {
+pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
     let api = Router::new()
         .route("/status", get(status))
         .fallback(api_not_found)

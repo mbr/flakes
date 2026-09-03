@@ -15,5 +15,8 @@ async fn main() -> anyhow::Result<()> {
 
     let database =
         twelve::postgres::connect_and_migrate(config.database_url, &sqlx::migrate!()).await?;
-    web::run(config.core.listen_address, config.frontend, database).await
+    let application = web::router(config.frontend, database);
+
+    twelve::serve(&config.core.listen_address, application).await?;
+    Ok(())
 }
