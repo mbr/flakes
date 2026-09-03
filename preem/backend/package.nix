@@ -25,7 +25,7 @@ rustPlatform.buildRustPackage {
 
   cargoLock = {
     lockFile = ./Cargo.lock;
-    outputHashes."twelve-0.3.1" = "sha256-XUZS2F1ae7HXb9G6c99s+wgG5M1VBHPhLNQ9ONadRP0=";
+    outputHashes."twelve-0.3.1" = "sha256-s9BSzt9nj5ZB0CFzWk7hJ7JSZk+Bhmn8VKaL3on1+xs=";
   };
 
   nativeBuildInputs = [ llvmPackages.bintools ];
