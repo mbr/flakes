@@ -4,7 +4,11 @@
 //! responses use endpoint-specific types, while non-success responses use the
 //! shared [`ApiProblem`] type.
 
-use axum::http::StatusCode;
+use axum::{
+    Json,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use serde::Serialize;
 
 /// Describes a successful ping response.
@@ -36,6 +40,14 @@ impl ApiProblem {
             Self::RouteNotFound => StatusCode::NOT_FOUND,
             Self::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
         }
+    }
+}
+
+impl IntoResponse for ApiProblem {
+    /// Serializes the problem as a non-success HTTP response.
+    fn into_response(self) -> Response {
+        let status = self.status_code();
+        (status, Json(self)).into_response()
     }
 }
 

@@ -8,16 +8,16 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
 use twelve::frontend::RouterExt;
 
 use crate::{
-    api::Pong,
-    error::{AppError, AppResult},
+    api::{ApiProblem, Pong},
+    error::AppResult,
 };
 
 /// Builds the application router.
 pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
     let api = Router::new()
         .route("/ping", get(ping))
-        .fallback(api_not_found)
-        .method_not_allowed_fallback(method_not_allowed)
+        .fallback(|| async { ApiProblem::RouteNotFound })
+        .method_not_allowed_fallback(|| async { ApiProblem::MethodNotAllowed })
         .with_frontend_version(&frontend);
 
     let frontend = Router::new()
@@ -34,16 +34,6 @@ pub(crate) fn router(frontend: PathBuf, database: PgPool) -> Router {
 /// Responds to an API ping.
 async fn ping() -> AppResult<Json<Pong>> {
     Ok(Json(Pong { message: "pong" }))
-}
-
-/// Returns the structured API route error.
-async fn api_not_found() -> AppResult<()> {
-    Err(AppError::RouteNotFound)
-}
-
-/// Returns the structured API method error.
-async fn method_not_allowed() -> AppResult<()> {
-    Err(AppError::MethodNotAllowed)
 }
 
 #[cfg(test)]
