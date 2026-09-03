@@ -43,8 +43,8 @@ build $mode='':
       -e "s/__FRONTEND_VERSION__/$frontend_version/g" \
       public/index.html > dist/index.html.tmp
 
-    printf '%s\n' "$frontend_version" > dist/static/frontend-version.tmp
-    mv dist/static/frontend-version.tmp dist/static/frontend-version
+    printf '%s\n' "$frontend_version" > dist/frontend-version.tmp
+    mv dist/frontend-version.tmp dist/frontend-version
     mv dist/index.html.tmp dist/index.html
 
 # Check source code (by building it)

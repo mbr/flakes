@@ -6,16 +6,19 @@ use axum::{Json, Router, extract::State, middleware, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
-use twelve::{config::ListenAddress, listener::Listener};
+use twelve::{
+    config::ListenAddress,
+    frontend::{
+        cache,
+        version::{FrontendVersion, attach},
+    },
+    listener::Listener,
+};
 
 use crate::{
     api::StatusResponse,
     db,
     error::{AppError, AppResult},
-    middleware::{
-        frontend_cache,
-        frontend_version::{FrontendVersion, attach},
-    },
 };
 
 /// Holds resources shared by HTTP handlers.
@@ -31,7 +34,7 @@ pub async fn run(
     frontend: PathBuf,
     database: PgPool,
 ) -> anyhow::Result<()> {
-    let frontend_version = FrontendVersion::new(frontend.join("static/frontend-version"));
+    let frontend_version = FrontendVersion::new(frontend.clone());
     let application = router(frontend.clone(), database, frontend_version);
     let shutdown = twelve::shutdown::signal();
 
@@ -56,7 +59,7 @@ fn router(frontend: PathBuf, database: PgPool, frontend_version: FrontendVersion
 
     let frontend = Router::new()
         .fallback_service(ServeDir::new(frontend).append_index_html_on_directories(true))
-        .layer(middleware::from_fn(frontend_cache::set));
+        .layer(middleware::from_fn(cache::set));
 
     Router::new()
         .nest("/api", api)
@@ -97,9 +100,9 @@ mod tests {
     use sqlx::postgres::PgPoolOptions;
     use tempfile::tempdir;
     use tower::ServiceExt;
+    use twelve::frontend::version::FrontendVersion;
 
     use super::router;
-    use crate::middleware::frontend_version::FrontendVersion;
 
     /// First frontend version used by the tests.
     const VERSION_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -111,12 +114,12 @@ mod tests {
         let static_assets = frontend.path().join("static");
         let versioned_assets = static_assets.join(VERSION_A);
         fs::create_dir_all(&versioned_assets).expect("asset directory should be created");
-        fs::write(static_assets.join("frontend-version"), VERSION_A)
+        fs::write(frontend.path().join("frontend-version"), VERSION_A)
             .expect("manifest should be written");
         fs::write(frontend.path().join("index.html"), "<!doctype html>")
             .expect("index should be written");
         fs::write(versioned_assets.join("app.js"), "").expect("asset should be written");
-        let frontend_version = FrontendVersion::new(static_assets.join("frontend-version"));
+        let frontend_version = FrontendVersion::new(frontend.path().to_owned());
         let database = PgPoolOptions::new()
             .connect_lazy("postgres://dev:dev@localhost/dev")
             .expect("database URL should be valid");

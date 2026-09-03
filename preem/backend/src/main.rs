@@ -4,7 +4,6 @@ mod api;
 mod config;
 mod db;
 mod error;
-mod middleware;
 mod web;
 
 /// Runs the web application.

@@ -17,7 +17,7 @@ refresh the Nix dependency snapshot.
 
 The frontend build places each asset set under its aggregate version in
 `dist/static`, injects that version into `dist/index.html`, and writes it to
-`dist/static/frontend-version`. The backend adds that version to API responses
+`dist/frontend-version`. The backend adds that version to API responses
 so a running Elm application can offer to reload after a frontend rebuild.
 
 The HTTP API contract is mirrored in `backend/src/api.rs` and
