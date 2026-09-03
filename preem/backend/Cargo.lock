@@ -1902,7 +1902,7 @@ dependencies = [
 [[package]]
 name = "twelve"
 version = "0.3.1"
-source = "git+https://github.com/mbr/twelve-rs?branch=master#3c16bfa3f78a41f75920bb7e46ecd0e51f072e89"
+source = "git+https://github.com/mbr/twelve-rs?branch=master#d84391680c0a6bddf7efde3ddb6547d5a43dd0ca"
 dependencies = [
  "axum",
  "sec",

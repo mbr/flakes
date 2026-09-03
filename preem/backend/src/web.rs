@@ -2,16 +2,13 @@
 
 use std::path::PathBuf;
 
-use axum::{Json, Router, extract::State, middleware, routing::get};
+use axum::{Json, Router, extract::State, routing::get};
 use sqlx::PgPool;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::info;
 use twelve::{
     config::ListenAddress,
-    frontend::{
-        cache,
-        version::{FrontendVersion, attach},
-    },
+    frontend::{RouterExt, version::FrontendVersion},
     listener::Listener,
 };
 
@@ -55,11 +52,11 @@ fn router(frontend: PathBuf, database: PgPool, frontend_version: FrontendVersion
         .route("/status", get(status))
         .fallback(api_not_found)
         .method_not_allowed_fallback(method_not_allowed)
-        .layer(middleware::from_fn_with_state(frontend_version, attach));
+        .with_frontend_version(frontend_version);
 
     let frontend = Router::new()
         .fallback_service(ServeDir::new(frontend).append_index_html_on_directories(true))
-        .layer(middleware::from_fn(cache::set));
+        .with_frontend_cache();
 
     Router::new()
         .nest("/api", api)
