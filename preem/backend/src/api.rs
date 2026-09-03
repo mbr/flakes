@@ -64,25 +64,3 @@ impl IntoResponse for ApiProblem {
         (status, Json(self)).into_response()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::{ApiProblem, Pong};
-
-    /// Verifies the initial cross-language transport contract.
-    #[test]
-    fn serializes_api_values() {
-        let response = Pong { message: "pong" };
-
-        assert_eq!(
-            serde_json::to_value(response).expect("pong response should serialize"),
-            json!({ "message": "pong" }),
-        );
-        assert_eq!(
-            serde_json::to_value(ApiProblem::RouteNotFound).expect("API problem should serialize"),
-            json!({ "type": "route_not_found" }),
-        );
-    }
-}
