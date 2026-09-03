@@ -1,4 +1,5 @@
 {
+  dumpnar,
   elmPackages,
   esbuild,
   just,
@@ -23,6 +24,7 @@ stdenvNoCC.mkDerivation {
   };
 
   nativeBuildInputs = [
+    dumpnar
     elmPackages.elm
     esbuild
     just

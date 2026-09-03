@@ -10,7 +10,6 @@ build $mode='':
     rm -rf dist
     mkdir -p dist/frontend-assets dist/static
     cp -R public/. dist/frontend-assets/
-    rm dist/frontend-assets/index.html
 
     case "$mode" in
       '')
@@ -32,12 +31,11 @@ build $mode='':
     esbuild elm-stuff/app.js --outfile=dist/frontend-assets/app.js --log-level=warning $minify_flag
     tailwindcss -i css/input.css -o dist/frontend-assets/app.css $minify_flag
 
-    frontend_version=$(
-      {
-        sha256sum public/index.html
-        find dist/frontend-assets -type f -exec sha256sum {} \; | sort
-      } | sha256sum | cut -d ' ' -f 1
-    )
+    # NAR provides a canonical serialization of the complete frontend tree.
+    dumpnar dist/frontend-assets > dist/frontend-assets.nar
+    frontend_version=$(sha256sum dist/frontend-assets.nar)
+    frontend_version=${frontend_version%% *}
+    rm dist/frontend-assets.nar dist/frontend-assets/index.html
     mv dist/frontend-assets "dist/static/$frontend_version"
     sed \
       -e "s/__FRONTEND_VERSION__/$frontend_version/g" \
