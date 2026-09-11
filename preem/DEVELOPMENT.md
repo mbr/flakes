@@ -49,9 +49,10 @@ generates the application configuration and runs that package.
 
 ## Secrets and external values
 
-Use `twelve::config::external::External` for strings supplied directly,
-through a file, or through an environment variable. This requires `twelve`
-`0.4.3` or later. For secrets, add this dependency to `backend/Cargo.toml`:
+Use `twelve::config::external::External` for strings supplied directly or
+through a file. Prefer files for secrets and literals for public dummy or
+development values. This requires `twelve` `0.4.3` or later. For secrets, add
+this dependency to `backend/Cargo.toml`:
 
 ```toml
 sec = { version = "1.1", features = ["deserialize"] }
@@ -73,19 +74,18 @@ struct Credentials {
 }
 ```
 
-Deserialization does not read files or environment variables. Resolve the
-source explicitly at startup, keeping the result wrapped:
+Deserialization does not read files. Resolve the source explicitly at
+startup, keeping the result wrapped:
 
 ```rust
 let token: Secret<String> = credentials.api_token.try_map_revealed(External::load)?;
 ```
 
-The corresponding TOML accepts any one of these forms:
+Use either of these TOML forms:
 
 ```toml
 api_token = "dummy-dev-key"
 # Alternatively: api_token = { file = "/run/secrets/api-token" }
-# Alternatively: api_token = { env = "API_TOKEN" }
 ```
 
 Loading preserves whitespace, including trailing newlines. Files must be
