@@ -87,11 +87,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787154068,
-        "narHash": "sha256-n0aJO1ZVQuOm/cI0q3M4LEaJn5YY/xhufbeCjy3BzVc=",
+        "lastModified": 1789130118,
+        "narHash": "sha256-HvgeRp3yf+nRkOU4E2u+ym+IEFl1yYA1O+4LDeueC/U=",
         "owner": "mbr",
         "repo": "nixdrawer",
-        "rev": "a7287fd87bccc84818bd3e63aa83311c5fb94a08",
+        "rev": "f9c423c2d837c3dfe1cc157920d5c3c62af696c6",
         "type": "github"
       },
       "original": {
