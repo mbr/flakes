@@ -11,6 +11,6 @@ serde = { version = "1", features = ["derive"] }
 sqlx = { version = "=0.8.6", default-features = false, features = ["macros", "migrate", "postgres"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.6", features = ["fs", "trace"] }
+tower-http = { version = "0.7", features = ["fs", "trace"] }
 tracing = { version = "0.1", default-features = false, features = ["std"] }
-twelve = { version = "0.4", features = ["postgres"] }
+twelve = { version = "0.4.3", features = ["postgres"] }
