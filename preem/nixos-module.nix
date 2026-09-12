@@ -21,7 +21,9 @@
             + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
           configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
             listen_address = listenAddress;
-            database_url = databaseUrl;
+            # SQLx needs an explicit user for local peer authentication.
+            database_url =
+              databaseUrl + lib.optionalString cfg.database.createLocally "&user=${lib.escapeURL cfg.user}";
             frontend = "${package}/share/myapp/frontend";
             log_filter = logFilter;
           };

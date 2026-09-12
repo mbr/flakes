@@ -64,9 +64,22 @@
         };
         sqlxDependency = (pkgs.lib.importTOML ./backend/Cargo.toml).dependencies.sqlx;
         sqlxVersion = pkgs.lib.removePrefix "=" sqlxDependency.version;
-        sqlxCli =
-          assert pkgs.sqlx-cli.version == sqlxVersion;
-          pkgs.sqlx-cli;
+        sqlxCli = rustPlatform.buildRustPackage {
+          pname = "sqlx-cli";
+          version = sqlxVersion;
+          src = pkgs.fetchCrate {
+            pname = "sqlx-cli";
+            version = sqlxVersion;
+            hash = "sha256-XariusjsCgn0Qai0XWtr7EzSzDDTp1cCzjff1kJNO9Y=";
+          };
+          cargoHash = "sha256-pHaMKuB9v3fjbgeVyLyRtfoQ9BkE6z+TjDfdBaVdbXM=";
+          buildNoDefaultFeatures = true;
+          buildFeatures = [
+            "postgres"
+            "rustls"
+          ];
+          doCheck = false;
+        };
         backend = pkgs.callPackage ./backend/package.nix {
           inherit rustEnv rustPlatform;
         };
@@ -106,6 +119,11 @@
         checks = {
           default = app;
           formatting = treefmtEval.config.build.check self;
+          sqlx-cli = pkgs.testers.testVersion {
+            package = sqlxCli;
+            version = sqlxVersion;
+            command = "sqlx --version";
+          };
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
           nixos-module-integration = pkgs.testers.runNixOSTest (

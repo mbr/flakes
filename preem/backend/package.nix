@@ -15,7 +15,7 @@ rustPlatform.buildRustPackage {
   src = lib.fileset.toSource {
     root = ./.;
     fileset = lib.fileset.unions [
-      ./.sqlx
+      (lib.fileset.maybeMissing ./.sqlx)
       ./Cargo.lock
       ./Cargo.toml
       ./migrations
