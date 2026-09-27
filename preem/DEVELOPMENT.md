@@ -47,6 +47,11 @@ Tailwind with global style rules or a parallel CSS component-class system.
 Limit custom CSS to theme configuration and behavior utilities cannot
 reasonably express.
 
+Prefer Tailwind's spacing and sizing scales and responsive layouts over
+pixel-tuned arbitrary values such as `w-[347px]` or `mt-[13px]`. Use arbitrary
+values only when standard utilities or theme tokens cannot express the
+requirement; arbitrary variants such as `[&>svg]:size-4` are fine.
+
 ## Database changes
 
 Prefer SQLx's compile-time checked query macros for database access, and keep
