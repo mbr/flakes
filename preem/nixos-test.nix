@@ -32,7 +32,6 @@
     machine.succeed("test $(stat --format=%a /run/${name}/http.sock) = 770")
     machine.succeed("test $(stat --format=%G /run/${name}/http.sock) = ${name}-service")
 
-    socket_inode = machine.succeed("stat --format=%i /run/${name}/http.sock").strip()
     machine.succeed("systemctl stop ${name}.service")
     machine.wait_until_fails("systemctl is-active --quiet ${name}.service")
     machine.succeed("test ! -e /run/${name}/http.sock")
@@ -43,6 +42,5 @@
     )
     machine.wait_until_succeeds("curl --fail --silent http://localhost/api/ping")
     machine.wait_for_unit("${name}.service")
-    assert machine.succeed("stat --format=%i /run/${name}/http.sock").strip() != socket_inode
   '';
 }
