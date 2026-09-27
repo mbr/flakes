@@ -31,6 +31,22 @@ so a running Elm application can offer to reload after a frontend rebuild.
 The HTTP API contract is mirrored in `backend/src/api.rs` and
 `frontend/src/Api.elm`. Keep the serialized Rust types and Elm decoders in sync.
 
+## UI conventions
+
+Use `ChadCn` components wherever they cover the required UI. Inspect the
+installed package's exposed modules and APIs before building a custom
+component; do not recreate components the library already provides.
+
+Build reusable Elm view functions or modules for repeated UI patterns, with
+explicit parameters for their data and messages. Do not copy-paste markup,
+styling, or interaction logic across views.
+
+Style layouts and custom elements with Tailwind utility classes in Elm views,
+using the semantic theme tokens in `frontend/css/input.css`. Do not bypass
+Tailwind with global style rules or a parallel CSS component-class system.
+Limit custom CSS to theme configuration and behavior utilities cannot
+reasonably express.
+
 ## Database changes
 
 Prefer SQLx's compile-time checked query macros for database access, and keep
@@ -59,8 +75,7 @@ generates the application configuration and runs that package.
 
 Use `twelve::config::external::External` for strings supplied directly or
 through a file. Prefer files for secrets and literals for public dummy or
-development values. This requires `twelve` `0.4.3` or later. For secrets, add
-this dependency to `backend/Cargo.toml`:
+development values. For secrets, add this dependency to `backend/Cargo.toml`:
 
 ```toml
 sec = { version = "1.1", features = ["deserialize"] }
