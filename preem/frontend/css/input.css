@@ -9,7 +9,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @source "../public";
-@source "../elm-stuff/app.js";
+@source "../dist/frontend-assets/app.js";
 
 @theme inline {
   --font-heading: var(--font-sans);
