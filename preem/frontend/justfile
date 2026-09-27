@@ -27,7 +27,7 @@ build $mode='':
     esac
 
     elm make src/Main.elm "$elm_flag" --output=elm-stuff/app.js
-    # Reprint Elm's JavaScript so Tailwind can recognize escaped class names.
+    # Reprint Elm's JavaScript to remove unnecessary string escapes.
     esbuild elm-stuff/app.js --outfile=dist/frontend-assets/app.js --log-level=warning $minify_flag
     tailwindcss -i css/input.css -o dist/frontend-assets/app.css $minify_flag
 
