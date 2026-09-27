@@ -1,5 +1,13 @@
 # Project operations
 
+Set the application name with `package.name` in `backend/Cargo.toml`, then run
+`just build` to refresh `backend/Cargo.lock`. Packages, NixOS services, paths,
+and integration tests derive their names from that value. Update page titles
+and descriptions separately.
+
+Renaming an existing deployment changes its service and default database
+identity; migrate the deployment rather than treating it as a routine rebuild.
+
 ## Development helpers
 
 Running `just dev` builds and runs the application with a fresh temporary
@@ -96,7 +104,7 @@ For NixOS deployment, add a file reference to the TOML attributes generated
 in `nixos-module.nix`:
 
 ```nix
-api_token.file = "/run/credentials/myapp.service/api-token";
+api_token.file = "/run/credentials/${name}.service/api-token";
 ```
 
 Supply that credential through systemd as described in

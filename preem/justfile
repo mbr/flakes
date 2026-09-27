@@ -18,11 +18,11 @@ dev: build
     #!/usr/bin/env -S pgdb /bin/sh
     set -eu
 
-    exec backend/target/debug/myapp - <<EOF
+    exec cargo run --manifest-path backend/Cargo.toml -- - <<EOF
     listen_address = "127.0.0.1:0"
     database_url = "$DATABASE_URL"
     frontend = "frontend/dist"
-    log_filter = "myapp=debug,tower_http=debug"
+    log_filter = "debug"
     EOF
 
 # Format all project sources.

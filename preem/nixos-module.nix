@@ -1,10 +1,17 @@
-{ self, nixdrawer }:
+{
+  self,
+  nixdrawer,
+  name,
+}:
 { lib, ... }:
+let
+  logTarget = lib.replaceStrings [ "-" ] [ "_" ] name;
+in
 {
   imports = [
     (nixdrawer.lib.mkWebAppModule {
-      name = "myapp";
-      description = "myapp web service";
+      inherit name;
+      description = "${name} web service";
       defaultPackage = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}.default;
       mkCommand =
         {
@@ -17,14 +24,14 @@
         }:
         let
           logFilter =
-            "myapp=${cfg.logLevel},tower_http=${cfg.logLevel}"
+            "${logTarget}=${cfg.logLevel},tower_http=${cfg.logLevel}"
             + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
-          configurationFile = (pkgs.formats.toml { }).generate "myapp.toml" {
+          configurationFile = (pkgs.formats.toml { }).generate "${name}.toml" {
             listen_address = listenAddress;
             # SQLx needs an explicit user for local peer authentication.
             database_url =
               databaseUrl + lib.optionalString cfg.database.createLocally "&user=${lib.escapeURL cfg.user}";
-            frontend = "${package}/share/myapp/frontend";
+            frontend = "${package}/share/${name}/frontend";
             log_filter = logFilter;
           };
         in
@@ -35,7 +42,7 @@
     })
   ];
 
-  options.services.myapp = {
+  options.services.${name} = {
     logLevel = lib.mkOption {
       type = lib.types.enum [
         "error"

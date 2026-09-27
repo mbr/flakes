@@ -102,9 +102,10 @@
 
           ## Initial setup
 
-          * Replace `myapp` in `backend/Cargo.toml`, `backend/Cargo.lock`, `backend/src/config.rs`, `frontend/package.nix`, `nixos-module.nix`, and `nixos-test.nix`.
+          * Set the package name in `backend/Cargo.toml`.
           * Update the package descriptions and frontend document title.
           * Run `direnv allow` to load the Nix development environment.
+          * Run `just build` to build the application and refresh `backend/Cargo.lock`.
 
           See `DEVELOPMENT.md` for development, validation, and deployment operations.
         '';

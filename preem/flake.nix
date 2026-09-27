@@ -35,7 +35,8 @@
       ...
     }:
     let
-      appModule = import ./nixos-module.nix { inherit self nixdrawer; };
+      name = (nixpkgs.lib.importTOML ./backend/Cargo.toml).package.name;
+      appModule = import ./nixos-module.nix { inherit self nixdrawer name; };
     in
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -83,8 +84,9 @@
         backend = pkgs.callPackage ./backend/package.nix {
           inherit rustEnv rustPlatform;
         };
-        frontend = pkgs.callPackage ./frontend/package.nix { };
-        name = (pkgs.lib.importTOML ./backend/Cargo.toml).package.name;
+        frontend = pkgs.callPackage ./frontend/package.nix {
+          appName = name;
+        };
         app = pkgs.symlinkJoin {
           name = "${name}-full";
           paths = [ backend ];
@@ -127,7 +129,7 @@
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
           nixos-module-integration = pkgs.testers.runNixOSTest (
-            import ./nixos-test.nix { inherit appModule; }
+            import ./nixos-test.nix { inherit appModule name; }
           );
         };
 

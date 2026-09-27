@@ -1,4 +1,5 @@
 {
+  appName,
   dumpnar,
   elmPackages,
   esbuild,
@@ -9,7 +10,7 @@
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "myapp-frontend";
+  pname = "${appName}-frontend";
   version = "0.1.0";
 
   src = lib.fileset.toSource {
