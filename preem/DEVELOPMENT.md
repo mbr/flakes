@@ -2,26 +2,15 @@
 
 ## Workflow
 
-`just dev` runs Process Compose with a persistent database in `.dev/db`; the
-app's localhost port is printed in its logs. Run `just ports` in another terminal
-to query the running web process's listening ports, including automatically
-assigned ports. Use `just dev --tui=false` for headless operation. Control it with
-`process-compose -U -u .dev/process-compose.sock <command>`, avoiding TCP port
-conflicts between working copies.
+The development setup is contained to a single worktree, sans the TCP bind address used for the web application. However the latter defaults to `127.0.0.1:0`, thus can be expected to be conflict free. The app's listening port is printed in its logs or can be retrieved using `process-compose ports`.
 
-Use `BIND_ADDRESS=127.0.0.1:3000 just dev` for a stable bind address per worktree.
-If unset or empty, it defaults to `127.0.0.1:0` (an automatically assigned port).
-This also applies to `just server`.
+To run the entire app in development mode, including a database, run `process-compose up`, append `--tui=false` if you want to run headless. Set `BIND_ADDRESS=` to a known address if you need a deterministic or non-localhost bind address for the web application. 
 
-Use `pgdb --connect .dev/db <command>` for additional database clients. Stop
-all development processes before removing `.dev/db` to reset local data.
-`just prepare` still uses a disposable database.
+`pgdb --connect .dev/db <command>` can be used to run a command against the database, provided it has been started using process-compose. `just prepare` still uses a disposable database.
 
 After changes, run `just format`, `just check`, then `just test`.
 
-After editing `frontend/elm.json`, run `just update-deps` in `frontend/` and
-commit the refreshed dependency snapshots. Keep `backend/src/api.rs` and
-`frontend/src/Api.elm` synchronized.
+After editing `frontend/elm.json`, run `just update-deps` in `frontend/` and commit the refreshed dependency snapshots. Keep `backend/src/api.rs` and `frontend/src/Api.elm` synchronized.
 
 ## UI conventions
 

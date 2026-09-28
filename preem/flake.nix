@@ -136,6 +136,9 @@
         devShells.default = pkgs.mkShell (
           rustEnv
           // {
+            shellHook = ''
+              export PC_SOCKET_PATH="$PWD/.dev/process-compose.sock"
+            '';
             inputsFrom = [
               backend
               frontend

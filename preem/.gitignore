@@ -1,5 +1,6 @@
 .direnv/
-.dev/
+.dev/*
+!.dev/.keep
 .env
 backend/target/
 frontend/dist/
