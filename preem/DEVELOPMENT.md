@@ -8,6 +8,10 @@ headless operation. Control it with
 `process-compose -U -u .dev/process-compose.sock <command>`, avoiding TCP port
 conflicts between working copies.
 
+Use `BIND_ADDRESS=127.0.0.1:3000 just dev` for a stable bind address per worktree.
+If unset or empty, it defaults to `127.0.0.1:0` (an automatically assigned port).
+This also applies to `just server`.
+
 Use `pgdb --connect .dev/db <command>` for additional database clients. Stop
 all development processes before removing `.dev/db` to reset local data.
 `just prepare` still uses a disposable database.
