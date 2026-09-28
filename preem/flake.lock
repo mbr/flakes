@@ -125,11 +125,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787097767,
-        "narHash": "sha256-HIk/DK8mzxUt2k0XF2rMTF5TYF3wlI6Id5yBByaRCzo=",
+        "lastModified": 1790557434,
+        "narHash": "sha256-SxvnBlYcGzh/EKOZuo4HXLKpqkJ8MC9MFF6k/sLlQf0=",
         "owner": "mbr",
         "repo": "pgdb-rs",
-        "rev": "7250ca27a4dcba6d0f9abc1be3d7d8a6effb7a2f",
+        "rev": "232d491a6eb884b583ed1f646edcdbe2acf69e0a",
         "type": "github"
       },
       "original": {

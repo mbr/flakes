@@ -12,10 +12,16 @@ build $mode='':
 package:
     nix build
 
-# Build and run the application with a temporary PostgreSQL database.
+# Build and supervise the application and persistent development database.
 [group('development')]
-dev: build
-    #!/usr/bin/env -S pgdb /bin/sh
+[positional-arguments]
+dev *args: build
+    mkdir -p .dev
+    process-compose --use-uds --unix-socket .dev/process-compose.sock --ordered-shutdown up "$@"
+
+# Run the backend with the database environment supplied by Process Compose.
+_serve:
+    #!/bin/sh
     set -eu
 
     exec cargo run --manifest-path backend/Cargo.toml -- - <<EOF
@@ -35,6 +41,7 @@ format:
 check:
     just --justfile backend/justfile check
     just --justfile frontend/justfile check
+    process-compose --dry-run
 
 # Run the project test suite.
 [group('quality')]

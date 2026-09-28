@@ -148,6 +148,7 @@
               just
               pgdb.packages.${system}.default
               postgresql
+              process-compose
               sqlxCli
               tailwindcss_4
               devToolchain

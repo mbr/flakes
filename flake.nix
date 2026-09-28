@@ -102,7 +102,7 @@
 
           ## Initial setup
 
-          * Set the package name in `backend/Cargo.toml`.
+          * Set `package.name` in `backend/Cargo.toml`; packages, services, paths, and tests derive their names from it.
           * Update the package descriptions and frontend document title.
           * Run `direnv allow` to load the Nix development environment.
           * Run `just build` to build the application and refresh `backend/Cargo.lock`.
