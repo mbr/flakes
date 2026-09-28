@@ -12,8 +12,7 @@ Use `pgdb --connect .dev/db <command>` for additional database clients. Stop
 all development processes before removing `.dev/db` to reset local data.
 `just prepare` still uses a disposable database.
 
-After changes, run `just check`, `just test`, and `just flake-check`, then
-`just format`.
+After changes, run `just check` and `just test`, then `just format`.
 
 After editing `frontend/elm.json`, run `just update-deps` in `frontend/` and
 commit the refreshed dependency snapshots. Keep `backend/src/api.rs` and

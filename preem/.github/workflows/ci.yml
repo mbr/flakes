@@ -20,5 +20,3 @@ jobs:
         run: nix develop --command just check
       - name: Test
         run: nix develop --command just test
-      - name: Build
-        run: nix flake check

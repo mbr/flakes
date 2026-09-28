@@ -44,12 +44,8 @@ check:
     just --justfile frontend/justfile check
     process-compose --dry-run
 
-# Run the project test suite.
+# Run backend tests and validate formatting, packages, and NixOS integration.
 [group('quality')]
 test:
     just --justfile backend/justfile test
-
-# Validate formatting, packages, and NixOS integration.
-[group('quality')]
-flake-check:
     nix flake check
