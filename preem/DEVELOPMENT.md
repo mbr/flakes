@@ -17,7 +17,7 @@ After editing `frontend/elm.json`, run `just update-deps` in `frontend/` and com
 
 ## UI conventions
 
-Use `ChadCn` for the the UI where possible, check its modules before building custom components. Extract repeated markup, styling, and interaction logic into reusable Elm view functions or modules with explicit data and message parameters.
+Use `ChadCn` for the UI where possible, check its modules before building custom components. Extract repeated markup, styling, and interaction logic into reusable Elm view functions or modules with explicit data and message parameters.
 
 Use Tailwind utilities and semantic tokens from `frontend/css/input.css`, avoid global style rules or a parallel CSS component-class system, i.e. do not circumvent Tailwind. Unless there is a good reason, do not use pixel-tuned values such as `w-[347px]`, rely on the "taste" built into Tailwind instead.
 
@@ -30,7 +30,6 @@ Use SQLx compile-time checked query macros over runtime whenever possible. After
 ## Secrets
 
 Use `twelve::config::external::External` for literal-or-file strings. Wrap sensitive fields in `sec::Secret<External>`. Prefer files for secrets and literals for public dummy values: `let token: Secret<String> = credentials.api_token.try_map_revealed(External::load)?;`
-```
 
 TOML accepts `api_token = "dummy-dev-key"` or `api_token = { file = "/run/secrets/api-token" }`.
 
