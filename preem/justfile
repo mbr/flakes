@@ -19,6 +19,11 @@ dev *args: build
     mkdir -p .dev
     process-compose --use-uds --unix-socket .dev/process-compose.sock --ordered-shutdown up "$@"
 
+# Show the running development server's listening ports.
+[group('development')]
+ports:
+    process-compose -U -u .dev/process-compose.sock process ports web
+
 # Run the development server against the running development database.
 [group('development')]
 server:

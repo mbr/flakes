@@ -3,8 +3,9 @@
 ## Workflow
 
 `just dev` runs Process Compose with a persistent database in `.dev/db`; the
-app's localhost port is printed in its logs. Use `just dev --tui=false` for
-headless operation. Control it with
+app's localhost port is printed in its logs. Run `just ports` in another terminal
+to query the running web process's listening ports, including automatically
+assigned ports. Use `just dev --tui=false` for headless operation. Control it with
 `process-compose -U -u .dev/process-compose.sock <command>`, avoiding TCP port
 conflicts between working copies.
 
