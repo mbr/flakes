@@ -12,6 +12,7 @@ in
     (nixdrawer.lib.mkWebAppModule {
       inherit name;
       description = "${name} web service";
+      publicUrlSupport = "none";
       defaultPackage = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}.default;
       mkCommand =
         {
@@ -21,19 +22,25 @@ in
           listenAddress,
           package,
           pkgs,
+          publicUrl,
         }:
         let
           logFilter =
             "${logTarget}=${cfg.logLevel},tower_http=${cfg.logLevel}"
             + lib.optionalString (cfg.extraLogFilters != "") ",${cfg.extraLogFilters}";
-          configurationFile = (pkgs.formats.toml { }).generate "${name}.toml" {
-            listen_address = listenAddress;
-            # SQLx needs an explicit user for local peer authentication.
-            database_url =
-              databaseUrl + lib.optionalString cfg.database.createLocally "&user=${lib.escapeURL cfg.user}";
-            frontend = "${package}/share/${name}/frontend";
-            log_filter = logFilter;
-          };
+          configurationFile = (pkgs.formats.toml { }).generate "${name}.toml" (
+            {
+              listen_address = listenAddress;
+              # SQLx needs an explicit user for local peer authentication.
+              database_url =
+                databaseUrl + lib.optionalString cfg.database.createLocally "&user=${lib.escapeURL cfg.user}";
+              frontend = "${package}/share/${name}/frontend";
+              log_filter = logFilter;
+            }
+            // lib.optionalAttrs (publicUrl != null) {
+              public_url = publicUrl;
+            }
+          );
         in
         [
           (lib.getExe package)
