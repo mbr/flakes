@@ -12,17 +12,6 @@ build $mode='':
 package:
     nix build
 
-# Build and supervise the application and persistent development database.
-[group('development')]
-[positional-arguments]
-dev *args: build
-    process-compose --ordered-shutdown up "$@"
-
-# Show the running development server's listening ports.
-[group('development')]
-ports:
-    process-compose process ports web
-
 # Run the development server against the running development database.
 [group('development')]
 server:
