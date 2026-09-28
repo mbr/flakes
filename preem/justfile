@@ -19,9 +19,10 @@ dev *args: build
     mkdir -p .dev
     process-compose --use-uds --unix-socket .dev/process-compose.sock --ordered-shutdown up "$@"
 
-# Run the backend with the database environment supplied by Process Compose.
-_serve:
-    #!/bin/sh
+# Run the development server against the running development database.
+[group('development')]
+server:
+    #!/usr/bin/env -S pgdb --connect .dev/db /bin/sh
     set -eu
 
     exec cargo run --manifest-path backend/Cargo.toml -- - <<EOF

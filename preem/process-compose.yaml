@@ -6,7 +6,7 @@ processes:
     ready_log_line: "PGDB_READY:"
 
   web:
-    command: pgdb --connect .dev/db just _serve
+    command: just server
     depends_on:
       db:
         condition: process_log_ready
