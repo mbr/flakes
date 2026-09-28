@@ -7,11 +7,6 @@ build $mode='':
     just --justfile backend/justfile build "$mode"
     just --justfile frontend/justfile build "$mode"
 
-# Build the production Nix package.
-[group('build')]
-package:
-    nix build
-
 # Run the development server against the running development database.
 [group('development')]
 server:
