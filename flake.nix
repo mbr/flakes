@@ -72,6 +72,23 @@
           * Alternatively `nix build '#docker'` will build a docker image (load it with `podman/docker load -i result`)
         '';
       };
+      templates.python-library = {
+        path = ./python-library;
+        description = "A Python library with tests, documentation, and publishing tools";
+        welcomeText = ''
+          # Python library
+
+          Uses Nix for packaging, tests, documentation, and formatting.
+
+          ## Next steps
+
+          * Rename `myproject/` and update the metadata, import check, tests, and docs.
+          * Run `direnv allow` or `nix develop` to enter the development environment.
+          * Run `nix fmt` and `nix flake check -L` to format and validate the project.
+
+          See `README.md` for development and publishing instructions.
+        '';
+      };
       templates.elm = {
         path = ./elm;
         description = "An Elm project";

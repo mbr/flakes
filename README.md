@@ -12,11 +12,12 @@ The `#rust` part is optional, as it is the default. If you are using bash, you m
 
 ## Available templates
 
-* `rust`: Builds a Rust project using the [fenix](https://github.com/nix-community/fenix) overlay.
-* `problem-bench`: Builds a Rust workspace for correctness testing, benchmarking, and profiling coding problems.
-* `python`: Builds a Python application, where `nix` manages the dependencies.
-* `elm`: Builds an Elm application with Tailwind CSS.
-* `preem`: Builds a PREEM application with PostgreSQL, Rust, Elm, and Nix environment management.
+- `rust`: Builds a Rust project using the [fenix](https://github.com/nix-community/fenix) overlay.
+- `problem-bench`: Builds a Rust workspace for correctness testing, benchmarking, and profiling coding problems.
+- `python`: Builds a Python application, where `nix` manages the dependencies.
+- `python-library`: Builds a Python library with tests, documentation, formatting, and PyPI publishing tools.
+- `elm`: Builds an Elm application with Tailwind CSS.
+- `preem`: Builds a PREEM application with PostgreSQL, Rust, Elm, and Nix environment management.
 
 ## Alternatives
 
