@@ -78,15 +78,11 @@
         welcomeText = ''
           # Python library
 
-          Uses Nix for packaging, tests, documentation, and formatting.
-
-          ## Next steps
-
-          * Rename `myproject/` and update the metadata, import check, tests, and docs.
-          * Run `direnv allow` or `nix develop` to enter the development environment.
-          * Run `nix fmt` and `nix flake check -L` to format and validate the project.
-
-          See `README.md` for development and publishing instructions.
+          * Rename `myproject/`; update `pyproject.toml`, the import check, tests, and docs.
+          * `nix develop` enters the dev shell; `pytest` runs tests.
+          * `nix fmt` formats; `nix flake check -L` validates; `nix build` builds the library and docs.
+          * Before publishing, add author/license metadata and configure Twine credentials.
+          * In the dev shell, `chmod +x publish.sh && ./publish.sh` checks and uploads to PyPI.
         '';
       };
       templates.elm = {

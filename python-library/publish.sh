@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#: Check, build, and publish the library to PyPI.
+
 set -eu
 
 cd "$(dirname "$0")"
