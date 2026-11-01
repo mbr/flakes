@@ -78,11 +78,29 @@
         welcomeText = ''
           # Python library
 
-          * Rename `myproject/`; update `pyproject.toml`, the import check, tests, and docs.
-          * `nix develop` enters the dev shell; `pytest` runs tests.
-          * `nix fmt` formats; `nix flake check -L` validates; `nix build` builds the library and docs.
-          * Before publishing, add author/license metadata and configure Twine credentials.
-          * In the dev shell, `chmod +x publish.sh && ./publish.sh` checks and uploads to PyPI.
+          Uses Nix for packaging, tests, documentation, and formatting.
+
+          ## Next steps (recommended)
+
+          * Rename `myproject/` and update the import check, tests, and docs.
+          * Edit package metadata in `pyproject.toml`.
+          * Restore script permissions with `chmod +x publish.sh`.
+
+          ## Development
+
+          `nix develop` to enter a dev shell
+
+          * `pytest` to run tests
+          * `nix fmt` to format; `nix flake check -L` to validate
+
+          ## Building the derivation
+
+          * `nix build` to build the library and documentation
+
+          ## Publishing
+
+          Add README, author, and license metadata and configure Twine credentials.
+          Run `./publish.sh` in the dev shell to check and upload to PyPI.
         '';
       };
       templates.elm = {

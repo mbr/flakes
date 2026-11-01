@@ -1,3 +1,0 @@
-# myproject
-
-A Python library.
