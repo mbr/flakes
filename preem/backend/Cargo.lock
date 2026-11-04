@@ -1722,9 +1722,9 @@ dependencies = [
 
 [[package]]
 name = "twelve"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c33ac638ce078a7fcac93b6b291b7f22c9d7eb187d3be9becd3cb051096aa3e"
+checksum = "3e27cc922f41b8ebc6e69b287b3a6791db3deb8a7653b22ef42781ab777d9b1a"
 dependencies = [
  "axum",
  "sec",
