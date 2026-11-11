@@ -144,7 +144,6 @@
               frontend
             ];
             nativeBuildInputs = with pkgs; [
-              dumpnar
               elm2nix
               elmPackages.elm
               esbuild

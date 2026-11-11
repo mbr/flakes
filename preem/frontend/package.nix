@@ -1,10 +1,10 @@
 {
   appName,
-  dumpnar,
   elmPackages,
   esbuild,
   just,
   lib,
+  nix,
   stdenvNoCC,
   tailwindcss_4,
 }:
@@ -25,10 +25,10 @@ stdenvNoCC.mkDerivation {
   };
 
   nativeBuildInputs = [
-    dumpnar
     elmPackages.elm
     esbuild
     just
+    nix
     tailwindcss_4
   ];
 
